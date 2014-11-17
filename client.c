@@ -5,6 +5,11 @@
 #include "unp.h"
 
 int main(int argc, char** argv) {
+    int iLocalIndex = getVmIndex();
+#ifdef DEBUG
+    prtItemInt("local index", iLocalIndex);
+#endif
+
     // create domain datagram socket
 	int iSockfd;
 	struct sockaddr_un suCliaddr, suServaddr;
@@ -29,10 +34,11 @@ int main(int argc, char** argv) {
 
     while (1) {
         int iVmNum = 0;
-        printf("Please select a VM by typing number 1-10, ");
+        printf("Please select a VM as server by typing number 1-10, ");
         printf("or type 0 to exit\n");
         scanf("%d", &iVmNum);
         if (iVmNum == 0) {
+	        unlink(pcFile);
             exit(0);
         } else if (iVmNum >= 1 && iVmNum <= 10) {
             printf("Your selection is VM %d\n\n", iVmNum);

@@ -3,7 +3,7 @@
 #include <net/if.h>             /* generic interface structures */
 
 #include "hw_addrs.h"
-
+#include "unp.h"
 
 struct hwa_info *
 get_hw_addrs()

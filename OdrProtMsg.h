@@ -1,3 +1,6 @@
+#ifndef ODRPROTMSG_H
+#define ODRPROTMSG_H
+
 struct AppMsg {
 	int type;
 	char srcIP[IP_LEN];
@@ -27,3 +30,5 @@ struct RREP {
 void makeAppMsg();
 void makeRREQ();
 void makeRREP();
+
+#endif

@@ -1,27 +1,30 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "constants.h"
+#include "utility.h"
+#include "unp.h"
 
 int main(int argc, char** argv) {
     // create domain datagram socket
-	int sockfd;
-	struct sockaddr_un cliaddr servaddr;
+	int iSockfd;
+	struct sockaddr_un suCliaddr, suServaddr;
 
-	sockfd=Socket(AF_LOCAL, SOCK_DGRAM, 0);
-	char file[]="template.XXXXXX";
-	// create a temp file
-	int tmpFile=mkstemp(file);
-	if(tmpFile==-1) {
-		printf("create temp file failed /n");
-		exit(1);
+	iSockfd = Socket(AF_LOCAL, SOCK_DGRAM, 0);
+	char pcFile[] = "template.XXXXXX";
+
+	// create temp file
+	int iTmpFile = mkstemp(pcFile);
+	if(iTmpFile == -1) {
+        errExit(ERR_CREATE_TEMP_SOCK_FILE);
 	}
 
-	unlink(file);
+	unlink(pcFile);
 
-	bzero(&cliaddr, sizeof(cliaddr) );          //  bind an address for us
-	cliaddr.sun_family=AF_LOCAL;
-	strcpy(cliaddr.sun_path, file);
+	bzero(&suCliaddr, sizeof(suCliaddr));
+	suCliaddr.sun_family = AF_LOCAL;
+	strcpy(suCliaddr.sun_path, pcFile);
 
-	Bind(sockfd, (SA*) &cliaddr, sizeof(cliaddr) );
+	Bind(iSockfd, (SA*) &suCliaddr, sizeof(suCliaddr));
 
 
     while (1) {

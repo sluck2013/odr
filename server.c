@@ -15,4 +15,10 @@ int main(int argc, char** argv) {
 	strcpy(servaddr.sun_path, SERV_WKPATH);
 
 	Bind(sockfd, (SA *) &servaddr, sizeof(servaddr) );
+
+	char *message;
+	char src_ip[IP_LEN];
+	while(1) {
+	msg_recv(sockfd, message,  )
+	}
 }

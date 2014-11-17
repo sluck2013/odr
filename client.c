@@ -19,7 +19,7 @@ int main(int argc, char** argv) {
 
 	bzero(&cliaddr, sizeof(cliaddr) );          //  bind an address for us
 	cliaddr.sun_family=AF_LOCAL;
-	strcpy(cliaddr.sun_path, tmpFile );
+	strcpy(cliaddr.sun_path, file);
 
 	Bind(sockfd, (SA*) &cliaddr, sizeof(cliaddr) );
 

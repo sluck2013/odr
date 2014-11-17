@@ -5,3 +5,6 @@ test*
 client_cse533-18
 server_cse533-18
 ODR_cse533-18
+template.*
+*.sh
+exe/*

@@ -1,9 +1,9 @@
 
 CC = gcc
 
-LIBS =  /home/courses/cse533/Stevens/unpv13e/libunp.a
+LIBS =  ../../unpv13e/libunp.a
 
-FLAGS = -g -O2
+FLAGS = -g -O2 -I../../unpv13e/lib
 
 all: get_hw_addrs.o prhwaddrs.o
 	${CC} -o prhwaddrs prhwaddrs.o get_hw_addrs.o ${LIBS}

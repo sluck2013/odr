@@ -1,28 +1,34 @@
-struct OdrProtMsg {
+#ifndef ODRPROTMSG_H
+#define ODRPROTMSG_H
+
+struct AppMsg {
 	int type;
-	char * srcIp;
+	char srcIP[IP_LEN];
 	int srcPort;
-	char * destIp;
+	char destIP[IP_LEN];
 	int destPort;
-	int hopCnt;
-	char Msg[2];
+	unsigned int hopCnt;
+	char msg[2];
 };
 
 struct RREQ {
-	char * srcIp;
-	int broadId;
-	char * destIp;
-	int hopCnt;
+    int type;
+	char srcIP[IP_LEN];
+	unsigned int broadID;
+	char destIP[IP_LEN];
+	unsigned int hopCnt;
 };
 
 struct RREP {
-	char * srcIp;
-	char * destIp;
-	int hopCnt;
-	int lifetime;
+    int type;
+	char srcIP[IP_LEN];
+	char destIP[IP_LEN];
+	unsigned int hopCnt;
+	unsigned int lifetime;
 };
 
+void makeAppMsg();
+void makeRREQ();
+void makeRREP();
 
-
-
-void RREQ();
+#endif

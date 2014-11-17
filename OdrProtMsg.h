@@ -8,4 +8,21 @@ struct OdrProtMsg {
 	char Msg[2];
 };
 
-void makeOdrProtMsg();
+struct RREQ {
+	char * srcIp;
+	int broadId;
+	char * destIp;
+	int hopCnt;
+};
+
+struct RREP {
+	char * srcIp;
+	char * destIp;
+	int hopCnt;
+	int lifetime;
+};
+
+
+
+
+void RREQ();

@@ -1,4 +1,5 @@
 #include "OdrProtMsg.h"
 
-void makeOdrProtMsg() {
+void RREQ() {
+
 }

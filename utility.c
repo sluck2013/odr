@@ -5,9 +5,11 @@
 #include "constants.h"
 #include "unp.h"
 
-void packAppData(int sockfd, char* destIP, int destPort, char* msg, int flag) {
-    //TODO : network byte order?
+void packAppData(const char* destIP, const int destPort, const char* msg, const int flag) {
 
+}
+
+void unpackAppData(char* destIP, int* destPort, char* msg) {
 }
 
 char* getVmIP(char* ip, const int index) {

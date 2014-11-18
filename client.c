@@ -40,7 +40,6 @@ int main(int argc, char** argv) {
 	int dest_port;
 
     while (1) {
-    	// step 1
         int iVmNum = 0;
         printf("\nPlease select a VM as server by typing number 1-10, ");
         printf("or type 0 to exit\n");
@@ -57,11 +56,15 @@ int main(int argc, char** argv) {
 #ifdef DEBUG
             prtItemString("Destination VM IP", destVmIP);
 #endif
-            msg_send(iSockfd, destVmIP, destPort, msg, 0);
-            printf("client at node vm %d sending request to server at vm %d\n", iLocalIndex, iVmNum);
+            while (1) {
+                //TODO: timeout 542 601
+                //try pselect and sigalarm
+                msg_send(iSockfd, destVmIP, destPort, msg, 0);
+                printf("client at node vm %d sending request to server at vm %d\n", iLocalIndex, iVmNum);
 
-            msg_recv(iSockfd, msg, destVmIP, &destPort);
-            printf("client at node vm %d received from vm %d %lu\n", iLocalIndex, getVmIndexByIP(destVmIP), time(NULL));
+                msg_recv(iSockfd, msg, destVmIP, &destPort);
+                printf("client at node vm %d received from vm %d %lu\n", iLocalIndex, getVmIndexByIP(destVmIP), time(NULL));
+            }
         }
     }
 }

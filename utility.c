@@ -5,31 +5,32 @@
 #include "constants.h"
 #include "unp.h"
 
-void packAppData(char* data,const char* destIP, const int destPort, const char* msg, const int flag) {
-    data[0]='\0';   
-    char ch[]="/";
-    char buffer1[20];
-    char buffer2[20];
+char* packAppData(char* data,const char* destIP, const int destPort, const char* msg, const int flag) {
+    data[0] = '\0';   
+    char ch[] = "/";
+    char buffer[20];
 
     strcat(data, destIP);
     strcat(data,ch);    
 
-    sprintf(buffer1, "%d", destPort);
-    strcat(data, buffer1);
+    sprintf(buffer, "%d", destPort);
+    strcat(data, buffer);
     strcat(data, ch);
 
     strcat(data, msg);
     strcat(data,ch);
 
-    sprintf(buffer2, "%d", flag);
-    strcat(data, buffer2);
+    sprintf(buffer, "%d", flag);
+    strcat(data, buffer);
+
+    return data;
 }
 
-void unpackAppData(const char* data, char* srcIP, int* srcPort, char* msg) {
-    char ch[]="/";
-    srcIP=strtok(data,ch);
-    *srcPort=atoi(strtok(NULL,ch));
-    msg=strtok(NULL,ch);
+void unpackAppData(char* data, char* srcIP, int* srcPort, char* msg) {
+    char ch[] = "/";
+    strcpy(srcIP, strtok(data, ch));
+    *srcPort = atoi(strtok(NULL, ch));
+    strcpy(msg,  strtok(NULL, ch));
 }
 
 char* getVmIP(char* ip, const int index) {

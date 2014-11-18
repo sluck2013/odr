@@ -3,6 +3,7 @@
 #include "constants.h"
 #include "utility.h"
 #include "unp.h"
+#include "api.h"
 
 int main(int argc, char** argv) {
     int iLocalIndex = getVmIndex();
@@ -31,8 +32,14 @@ int main(int argc, char** argv) {
 
 	Bind(iSockfd, (SA*) &suCliaddr, sizeof(suCliaddr));
 
+	char message[2];
+	char src_ip[IP_LEN];
+	char dest_ip[IP_LEN];
+	int src_port;
+	int dest_port;
 
     while (1) {
+    	// step 1
         int iVmNum = 0;
         printf("Please select a VM as server by typing number 1-10, ");
         printf("or type 0 to exit\n");

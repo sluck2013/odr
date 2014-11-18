@@ -17,5 +17,6 @@
 #define IP08 "130.245.156.28"
 #define IP09 "130.245.156.29"
 #define IP10 "130.245.156.20"
+#define SERV_WELLKNOWN_PATH "CSE533-18"
 
 #endif

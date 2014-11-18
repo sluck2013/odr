@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
 	struct sockaddr_un suCliaddr, suServaddr;
 
 	iSockfd = Socket(AF_LOCAL, SOCK_DGRAM, 0);
-	char pcFile[] = "template.XXXXXX";
+	char pcFile[] = "109399621.XXXXXX";
 
 	// create temp file
 	int iTmpFile = mkstemp(pcFile);
@@ -33,12 +33,6 @@ int main(int argc, char** argv) {
 
 	Bind(iSockfd, (SA*) &suCliaddr, sizeof(suCliaddr));
 
-	char message[2];
-	char src_ip[IP_LEN];
-	char dest_ip[IP_LEN];
-	int src_port;
-	int dest_port;
-
     while (1) {
         int iVmNum = 0;
         printf("\nPlease select a VM as server by typing number 1-10, ");
@@ -51,20 +45,18 @@ int main(int argc, char** argv) {
             printf("Your selection is VM %d\n", iVmNum);
             char destVmIP[IP_LEN];
             char msg[] = "1";
-            int destPort = SERV_WK_PORT_INT;
+            int destPort = SERV_WK_PORT;
             getVmIP(destVmIP, iVmNum);
 #ifdef DEBUG
             prtItemString("Destination VM IP", destVmIP);
 #endif
-            while (1) {
-                //TODO: timeout 542 601
-                //try pselect and sigalarm
-                msg_send(iSockfd, destVmIP, destPort, msg, 0);
-                printf("client at node vm %d sending request to server at vm %d\n", iLocalIndex, iVmNum);
+            //TODO: timeout 542 601
+            //try pselect and sigalarm
+            msg_send(iSockfd, destVmIP, destPort, msg, 0);
+            printf("client at node vm %d sending request to server at vm %d\n", iLocalIndex, iVmNum);
 
-                msg_recv(iSockfd, msg, destVmIP, &destPort);
-                printf("client at node vm %d received from vm %d %lu\n", iLocalIndex, getVmIndexByIP(destVmIP), time(NULL));
-            }
+            msg_recv(iSockfd, msg, destVmIP, &destPort);
+            printf("client at node vm %d received from vm %d %lu\n", iLocalIndex, getVmIndexByIP(destVmIP), time(NULL));
         }
     }
 }

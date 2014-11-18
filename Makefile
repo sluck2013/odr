@@ -25,7 +25,7 @@ utility.o: utility.h utility.c constants.h
 	$(CC) $(FLAGS) -c utility.c
 get_hw_addrs.o: lib/get_hw_addrs.c lib/hw_addrs.h
 	$(CC) $(FLAGS) -c lib/get_hw_addrs.c
-api.o: api.h api.c
+api.o: api.h api.c constants.h
 	$(CC) $(FLAGS) -c api.c
 
 clean:

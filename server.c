@@ -12,11 +12,11 @@ int main(int argc, char** argv) {
 
 	iSockfd = Socket(AF_LOCAL, SOCK_DGRAM, 0);
 
-	unlink(SERV_WK_PORT_STR);
+	unlink(SERV_WK_PATH);
 
 	bzero(&suServaddr, sizeof(suServaddr));
 	suServaddr.sun_family = AF_LOCAL;
-	strcpy(suServaddr.sun_path, SERV_WK_PORT_STR);
+	strcpy(suServaddr.sun_path, SERV_WK_PATH);
 
 	Bind(iSockfd, (SA *) &suServaddr, sizeof(suServaddr) );
 

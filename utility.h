@@ -2,8 +2,8 @@
 #define UTILITY_H
 
 
-void packAppData(const char* destIP, const int destPort, const char* msg, const int flag);
-void unpackAppData(char* destIP, int* destPort, char* msg);
+void packAppData(char* data,const char* destIP, const int destPort, const char* msg, const int flag);
+void unpackAppData(const char* data, char* srcIP, int* srcPort, char* msg);
 char* getVmIP(char* ip, const int index);
 int getVmIndex();
 int getVmIndexByIP(const char *IP);

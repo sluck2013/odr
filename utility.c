@@ -39,7 +39,7 @@ char* getVmIP(char* ip, const int index) {
 
 int getVmIndex() {
     struct hwa_info *hwa, *hwaHead;
-
+//TODO: use gethostbyname
     hwa = hwaHead = Get_hw_addrs();
     for (; hwa != NULL; hwa = hwa->hwa_next) {
         struct sockaddr *sa = hwa->ip_addr;

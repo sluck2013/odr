@@ -1,18 +1,32 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "constants.h"
+#include "utility.h"
+#include "unp.h"
+#include "api.h"
 
 int main(int argc, char** argv) {
 	// create a domain datagram socket
-	int sockfd;
-	struct sockaddr_un servaddr;
+	int iSockfd;
+	struct sockaddr_un suServaddr;
 
-	sockfd=Socket(AF_LOCAL, SOCK_DGRAM, 0);
+	iSockfd = Socket(AF_LOCAL, SOCK_DGRAM, 0);
 
-	unlink(SERV_WKPATH);
+	unlink(SERV_WK_PORT_STR);
 
-	bzero(&servaddr, sizeof(servaddr));
-	servaddr.sun_family=AF_LOCAL;
-	strcpy(servaddr.sun_path, SERV_WKPATH);
+	bzero(&suServaddr, sizeof(suServaddr));
+	suServaddr.sun_family = AF_LOCAL;
+	strcpy(suServaddr.sun_path, SERV_WK_PORT_STR);
 
-	Bind(sockfd, (SA *) &servaddr, sizeof(servaddr) );
+	Bind(iSockfd, (SA *) &suServaddr, sizeof(suServaddr) );
+
+	char pcMsg[2];
+	char pcSrcIP[IP_LEN];
+	int iSrcPort;
+
+    while(1) {
+        msg_recv(iSockfd, pcMsg, pcSrcIP, &iSrcPort);
+        msg_send(iSockfd, pcSrcIP, iSrcPort, pcMsg ,0);
+        printf("server at node vm %d responding to request from vm %d\n", getVmIndex(), getVmIndexByIP(pcSrcIP) );
+    }
 }

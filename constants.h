@@ -18,5 +18,7 @@
 #define IP09 "130.245.156.29"
 #define IP10 "130.245.156.20"
 
+#define SERV_WK_PORT_STR "109399621"
+#define SERV_WK_PORT_INT 109399621
 
 #endif

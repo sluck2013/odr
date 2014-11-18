@@ -4,6 +4,7 @@
 #include "utility.h"
 #include "unp.h"
 #include "time.h"
+#include "api.h"
 
 int main(int argc, char** argv) {
     int iLocalIndex = getVmIndex();
@@ -32,8 +33,14 @@ int main(int argc, char** argv) {
 
 	Bind(iSockfd, (SA*) &suCliaddr, sizeof(suCliaddr));
 
+	char message[2];
+	char src_ip[IP_LEN];
+	char dest_ip[IP_LEN];
+	int src_port;
+	int dest_port;
 
     while (1) {
+    	// step 1
         int iVmNum = 0;
         printf("\nPlease select a VM as server by typing number 1-10, ");
         printf("or type 0 to exit\n");
@@ -45,7 +52,7 @@ int main(int argc, char** argv) {
             printf("Your selection is VM %d\n", iVmNum);
             char destVmIP[IP_LEN];
             char msg[] = "1";
-            char destPort[] = SERV_WELLKNOWN_PATH;
+            int destPort = SERV_WK_PORT_INT;
             getVmIP(destVmIP, iVmNum);
 #ifdef DEBUG
             prtItemString("Destination VM IP", destVmIP);
@@ -53,8 +60,8 @@ int main(int argc, char** argv) {
             msg_send(iSockfd, destVmIP, destPort, msg, 0);
             printf("client at node vm %d sending request to server at vm %d\n", iLocalIndex, iVmNum);
 
-            msg_recv(iSockfd, msg, destVmIP, destPort);
-            printf("client at node vm %d received from vm %d %lu\n", iLocalIndex, getVmIndexByIP(destVmIP), time());
+            msg_recv(iSockfd, msg, destVmIP, &destPort);
+            printf("client at node vm %d received from vm %d %lu\n", iLocalIndex, getVmIndexByIP(destVmIP), time(NULL));
         }
     }
 }

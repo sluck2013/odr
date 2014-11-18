@@ -3,6 +3,7 @@
 #include "constants.h"
 #include "utility.h"
 #include "unp.h"
+#include "time.h"
 
 int main(int argc, char** argv) {
     int iLocalIndex = getVmIndex();
@@ -34,14 +35,26 @@ int main(int argc, char** argv) {
 
     while (1) {
         int iVmNum = 0;
-        printf("Please select a VM as server by typing number 1-10, ");
+        printf("\nPlease select a VM as server by typing number 1-10, ");
         printf("or type 0 to exit\n");
         scanf("%d", &iVmNum);
         if (iVmNum == 0) {
 	        unlink(pcFile);
             exit(0);
         } else if (iVmNum >= 1 && iVmNum <= 10) {
-            printf("Your selection is VM %d\n\n", iVmNum);
+            printf("Your selection is VM %d\n", iVmNum);
+            char destVmIP[IP_LEN];
+            char msg[] = "1";
+            char destPort[] = SERV_WELLKNOWN_PATH;
+            getVmIP(destVmIP, iVmNum);
+#ifdef DEBUG
+            prtItemString("Destination VM IP", destVmIP);
+#endif
+            msg_send(iSockfd, destVmIP, destPort, msg, 0);
+            printf("client at node vm %d sending request to server at vm %d\n", iLocalIndex, iVmNum);
+
+            msg_recv(iSockfd, msg, destVmIP, destPort);
+            printf("client at node vm %d received from vm %d %lu\n", iLocalIndex, getVmIndexByIP(destVmIP), time());
         }
     }
 }

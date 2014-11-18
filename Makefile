@@ -13,9 +13,9 @@ client_cse533-18: client.o utility.o get_hw_addrs.o
 client.o: client.c client.h constants.h
 	$(CC) $(FLAGS) -c client.c
 utility.o: utility.h utility.c constants.h
-	$(CC) $(FLAGS) -c utility.c $(LIBS)
+	$(CC) $(FLAGS) -c utility.c 
 get_hw_addrs.o: lib/get_hw_addrs.c lib/hw_addrs.h
-	$(CC) $(FLAGS) -c lib/get_hw_addrs.c $(LIBS)
+	$(CC) $(FLAGS) -c lib/get_hw_addrs.c
 
 clean:
 	echo "Removing executable files..."

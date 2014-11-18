@@ -12,7 +12,7 @@ void packAppData(char* data,const char* destIP, const int destPort, const char* 
     char buffer2[20];
 
     strcat(data, destIP);
-    strcat(data,ch);
+    strcat(data,ch);    
 
     sprintf(buffer1, "%d", destPort);
     strcat(data, buffer1);
@@ -23,11 +23,13 @@ void packAppData(char* data,const char* destIP, const int destPort, const char* 
 
     sprintf(buffer2, "%d", flag);
     strcat(data, buffer2);
-    strcat(data,ch);
 }
 
 void unpackAppData(const char* data, char* srcIP, int* srcPort, char* msg) {
-
+    char ch[]="/";
+    srcIP=strtok(data,ch);
+    *srcPort=atoi(strtok(NULL,ch));
+    msg=strtok(NULL,ch);
 }
 
 char* getVmIP(char* ip, const int index) {

@@ -17,8 +17,6 @@ void msg_send(int sockfd, char* destIP, int destPort, char* msg, int flag) {
 
 
 void msg_recv(int sockfd, char* msgBuf, char* srcIP, int* srcPort) {
-	// char* packAppData(char* data,const char* destIP, const int destPort, const char* msg, const int flag) 
-	// void unpackAppData(char* data, char* srcIP, int* srcPort, char* msg) 
 	char data_from_sock[MAXLINE];
 	struct sockaddr_un suServAddr;
 	int nready,n;

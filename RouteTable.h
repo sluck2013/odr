@@ -19,6 +19,7 @@ typedef struct RouteTable {
 } RTab_t;
 
 
+RTab_t *createRouteTable();
 RTabEnt_t *getRTabEntByDest(const RTab_t* rTable, const char* destIP);
 
 #endif

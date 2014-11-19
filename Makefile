@@ -12,8 +12,8 @@ client_cse533-18: client.o utility.o get_hw_addrs.o api.o
 	$(CC) $(CFLAGS) -o client_cse533-18 client.o utility.o get_hw_addrs.o api.o $(LIBS)
 server_cse533-18: server.o utility.o get_hw_addrs.o api.o
 	$(CC) $(CFLAGS) -o server_cse533-18 server.o utility.o get_hw_addrs.o api.o $(LIBS)
-ODR_cse533-18: odr.o utility.o get_hw_addrs.o RouteTable.o PathTable.o
-	$(CC) $(CFLAGS) -o ODR_cse533-18 odr.o utility.o get_hw_addrs.o RouteTable.o PathTable.o $(LIBS)
+ODR_cse533-18: odr.o utility.o get_hw_addrs.o RouteTable.o PathTable.o OdrProtMsg.o
+	$(CC) $(CFLAGS) -o ODR_cse533-18 odr.o utility.o get_hw_addrs.o RouteTable.o PathTable.o OdrProtMsg.o $(LIBS)
 
 client.o: client.c client.h constants.h
 	$(CC) $(FLAGS) -c client.c
@@ -31,6 +31,8 @@ RouteTable.o: RouteTable.c RouteTable.h constants.h
 	$(CC) $(FLAGS) -c RouteTable.c
 PathTable.o: PathTable.c PathTable.h constants.h
 	$(CC) $(FLAGS) -c PathTable.c
+OdrProtMsg.o: OdrProtMsg.c OdrProtMsg.h constants.h
+	$(CC) $(FLAGS) -c OdrProtMsg.c
 
 clean:
 	echo "Removing executable files..."

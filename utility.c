@@ -118,6 +118,7 @@ unsigned char hexStr2UChar(char const* str) {
 
 void prtErr(const char *msg) {
     printf("ERROR: %s\n", msg);
+    fflush(stdout);
 }
 
 void errExit(const char *msg) {

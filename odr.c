@@ -39,6 +39,11 @@ int main(int argc, char** argv) {
     unlink(ODR_WK_PATH);
     Bind(iDomSock, (SA*)&suOdrAddr, sizeof(suOdrAddr));
 
+    int iRawSock = socket(PF_PACKET, SOCK_RAW, htons(ETH_PROT_VALUE));
+    if (iRawSock == -1) {
+        errExit(ERR_CREATE_RAW_SOCK);
+    }
+
     char pcReadBuf[MAXLINE + 1];
     char destIP[IP_LEN];
     int destPort, flag;
@@ -73,7 +78,7 @@ int main(int argc, char** argv) {
 #endif
             //create socket
             char destMac[MAC_LEN] = ODR_BROADCAST_MAC;
-            sendRawFrame(111, destMac, localMac, (unsigned char*) & RREQ);
+            sendRawFrame(iRawSock, destMac, localMac, (unsigned char*) & RREQ);
         } else {
             //send DATA
         }

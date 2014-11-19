@@ -14,6 +14,7 @@
 #define ERR_SELECT "select error"
 #define ERR_RECVFROM "recvfrom error"
 #define ERR_SEND_RAW_DATA "Sending data via raw socket"
+#define ERR_CREATE_RAW_SOCK "Creating raw socket failed!"
 
 #define SERV_WK_PATH "109399621"
 #define SERV_WK_PORT (39962)

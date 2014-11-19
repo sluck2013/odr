@@ -31,7 +31,9 @@ void unpackAppData(char* data, char* IP, int* port, char* msg, int* flag) {
     strcpy(IP, strtok(data, ch));
     *port = atoi(strtok(NULL, ch));
     strcpy(msg,  strtok(NULL, ch));
-    *flag = atoi(data);
+    if (flag != NULL) {
+        *flag = atoi(data);
+    }
 }
 
 char* getVmIPByIndex(char* ip, const int index) {

@@ -9,6 +9,8 @@
 
 #define ERR_CREATE_TEMP_SOCK_FILE "Create temp file failed!"
 #define ERR_PTAB_OVERFLOW "Too many entries in path table!"
+#define ERR_SELECT "select error"
+#define ERR_RECVFROM "recvfrom error"
 
 #define SERV_WK_PATH "109399621"
 #define SERV_WK_PORT (39962)

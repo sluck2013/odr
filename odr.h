@@ -3,41 +3,61 @@
 
 #include "constants.h"
 
-typedef struct PathTableElement {
+typedef struct PathTableEntry {
     unsigned long int createTime;
     unsigned int lifetime;
     unsigned int port;
     char sunPath[108];
-    struct PathTableElement *next;
-    struct PathTableElement *prev;
-} PTabElem_t;
+    struct PathTableEntry *next;
+    struct PathTableEntry *prev;
+} PTabEnt_t;
+
+typedef struct AvailablePort {
+    unsigned int port;
+    struct AvailablePort *next;
+    struct AvailablePort *prev;
+} AvailPort_t;
+
+typedef struct AvailablePortList {
+    AvailPort_t *head;
+    AvailPort_t *tail;
+} PortList_t;
 
 typedef struct PathTable {
-    PTabElem_t *head;
-    PTabElem_t *tail;
+    PTabEnt_t *head;
+    PTabEnt_t *tail;
+    PortList_t portList;
 } PTab_t;
 
-typedef struct RouteTableSubElement {
+typedef struct RouteTableEntry {
+    char destIP[IP_LEN];
     char nextNode[IP_LEN];
     int outIfIndex;
     int distToDest;
     unsigned long int lastUpdated;
-    struct RouteTableSubElement *next;
-    struct RouteTableSubElement *prev;
-} RTabSubElem_t;
-
-typedef struct RouteTableElement {
-    char destIP[IP_LEN];
-    RTabSubElem_t *head;
-    RTabSubElem_t *tail;
-} RTabElem_t;
+    struct RouteTableEntry *next;
+    struct RouteTableEntry *prev;
+} RTabEnt_t;
 
 typedef struct RouteTable {
-    RTabElem_t *head;
-    RTabElem_t *tail;
+    RTabEnt_t *head;
+    RTabEnt_t *tail;
 } RTab_t;
 
 PTab_t *createPathTable(); 
-PTabElem_t *addToPathTable();
+PTabEnt_t *addToPathTable(PTab_t* pathTable, const unsigned int port, const char* path, const unsigned int lifetime);
+PTabEnt_t *findPTabEntByPath(const PTab_t* pTable, const char* sunPath);
+RTabEnt_t *getTabEntByDest(const RTab_t* rTable, const char* destIP);
+AvailPort_t *portList_pushBack(PortList_t *plist, const unsigned int port);
+unsigned int getNewPTabPort(PTab_t* pathTable);
+
+AvailPort_t *portList_pushBack(PortList_t* plist, const unsigned int port);
+unsigned int portList_popFront(PortList_t* plist);
+void portList_remove(PortList_t* plist, AvailPort_t *target);
+int portList_isEmpty(PortList_t* plist);
+
+#ifdef DEBUG
+void prtPortList(const PTab_t* pathTable);
+#endif
 
 #endif

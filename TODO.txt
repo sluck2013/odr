@@ -1,0 +1,3 @@
+check mem leak
+    free hw_addr
+    free malloc

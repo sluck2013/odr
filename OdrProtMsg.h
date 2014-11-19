@@ -24,7 +24,7 @@ struct RREP {
 	char srcIP[IP_LEN];
 	char destIP[IP_LEN];
 	unsigned int hopCnt;
-	unsigned int lifetime;
+	//unsigned int lifetime;
 };
 
 void makeAppMsg();

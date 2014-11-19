@@ -7,7 +7,7 @@
 #include "api.h"
 
 int main(int argc, char** argv) {
-    int iLocalIndex = getVmIndex();
+    int iLocalIndex = getLocalVmIndex();
 #ifdef DEBUG
     prtItemInt("local index", iLocalIndex);
 #endif
@@ -46,9 +46,9 @@ int main(int argc, char** argv) {
             char destVmIP[IP_LEN];
             char msg[] = "1";
             int destPort = SERV_WK_PORT;
-            getVmIP(destVmIP, iVmNum);
+            getVmIPByIndex(destVmIP, iVmNum);
 #ifdef DEBUG
-            prtItemString("Destination VM IP", destVmIP);
+            prtItemStr("Destination VM IP", destVmIP);
 #endif
             //TODO: timeout 542 601
             //try pselect and sigalarm

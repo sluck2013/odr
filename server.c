@@ -27,6 +27,6 @@ int main(int argc, char** argv) {
     while(1) {
         msg_recv(iSockfd, pcMsg, pcSrcIP, &iSrcPort);
         msg_send(iSockfd, pcSrcIP, iSrcPort, pcMsg ,0);
-        printf("server at node vm %d responding to request from vm %d\n", getVmIndex(), getVmIndexByIP(pcSrcIP) );
+        printf("server at node vm %d responding to request from vm %d\n", getLocalVmIndex(), getVmIndexByIP(pcSrcIP) );
     }
 }

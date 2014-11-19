@@ -5,20 +5,20 @@
 #include "constants.h"
 #include "unp.h"
 
-char* packAppData(char* data,const char* destIP, const int destPort, const char* msg, const int flag) {
+char* packAppData(char* data,const char* IP, const int port, const char* msg, const int flag) {
     data[0] = '\0';   
     char ch[] = "/";
     char buffer[20];
 
-    strcat(data, destIP);
-    strcat(data,ch);    
+    strcat(data, IP);
+    strcat(data, ch);    
 
-    sprintf(buffer, "%d", destPort);
+    sprintf(buffer, "%d", port);
     strcat(data, buffer);
     strcat(data, ch);
 
     strcat(data, msg);
-    strcat(data,ch);
+    strcat(data, ch);
 
     sprintf(buffer, "%d", flag);
     strcat(data, buffer);
@@ -26,21 +26,25 @@ char* packAppData(char* data,const char* destIP, const int destPort, const char*
     return data;
 }
 
-void unpackAppData(char* data, char* srcIP, int* srcPort, char* msg) {
+void unpackAppData(char* data, char* IP, int* port, char* msg, int* flag) {
     char ch[] = "/";
-    strcpy(srcIP, strtok(data, ch));
-    *srcPort = atoi(strtok(NULL, ch));
+    strcpy(IP, strtok(data, ch));
+    *port = atoi(strtok(NULL, ch));
     strcpy(msg,  strtok(NULL, ch));
+    *flag = atoi(data);
 }
 
-char* getVmIP(char* ip, const int index) {
-    char* ipArray[VM_NUM] = {IP01, IP02, IP03, IP04, IP05, IP06, IP07, IP08, IP09, IP10};
-    return strcpy(ip, ipArray[index - 1]);
+char* getVmIPByIndex(char* ip, const int index) {
+    char hostName[5];
+    char ipBuf[16];
+    sprintf(hostName, "vm%d", index);
+    struct hostent *h = gethostbyname(hostName);
+    inet_ntop(h->h_addrtype, h->h_addr, ipBuf, sizeof(ipBuf));
+    strcpy(ip, ipBuf);
 }
 
-int getVmIndex() {
+int getLocalVmIndex() {
     struct hwa_info *hwa, *hwaHead;
-//TODO: use gethostbyname
     hwa = hwaHead = Get_hw_addrs();
     for (; hwa != NULL; hwa = hwa->hwa_next) {
         struct sockaddr *sa = hwa->ip_addr;
@@ -55,13 +59,10 @@ int getVmIndex() {
 }
 
 int getVmIndexByIP(const char* IP) {
-    char* ipArray[VM_NUM] = {IP01, IP02, IP03, IP04, IP05, IP06, IP07, IP08, IP09, IP10};
-    for (int i = 0; i < VM_NUM; ++i) {
-        if (strcmp(ipArray[i], IP) == 0) {
-            return i + 1;
-        }
-    }
-    return -1;
+    struct in_addr iaIP;
+    inet_pton(AF_INET, IP, &iaIP);
+    struct hostent *h = gethostbyaddr(&iaIP, sizeof(iaIP), AF_INET);
+    return atoi(&h->h_name[2]);
 }
 
 void prtErr(const char *msg) {
@@ -77,6 +78,6 @@ void prtItemInt(const char *key, const int value) {
     printf("%s: %d\n", key, value);
 }
 
-void prtItemString(const char *key, const char* value) {
+void prtItemStr(const char *key, const char* value) {
     printf("%s: %s\n", key, value);
 }

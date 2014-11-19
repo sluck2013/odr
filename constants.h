@@ -6,6 +6,8 @@
 #define VM_NUM (10)
 
 #define ERR_CREATE_TEMP_SOCK_FILE "Create temp file failed!"
+#define ERR_SELECT "select error"
+#define ERR_RECVFROM "recvfrom error"
 
 #define IP01 "130.245.156.21"
 #define IP02 "130.245.156.22"

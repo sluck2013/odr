@@ -8,11 +8,14 @@
 #include<setjmp.h>
 
 static sigjmp_buf jmpbuf;
-static void sig_alrm(int signo);
+static void timeout(int signo);
 int choice=0;
 int flag=0;
 char timeBuf[50];
 int iSockfd;
+ char destVmIP[IP_LEN];
+ char msg[] = "1";
+ int destPort = SERV_WK_PORT;
 
 int main(int argc, char** argv) {
     int iLocalIndex = getVmIndex();
@@ -41,10 +44,10 @@ int main(int argc, char** argv) {
 
 	Bind(iSockfd, (SA*) &suCliaddr, sizeof(suCliaddr));
 
-	signal(SIGALRM, sig_alrm);
+	signal(SIGALRM, timeout);
     while (1) {
         int iVmNum = 0;
-        client_request_send:
+        client_request:
         printf("\nPlease select a VM as server by typing number 1-10, ");
         printf("or type 0 to exit\n");
         scanf("%d", &iVmNum);
@@ -53,9 +56,9 @@ int main(int argc, char** argv) {
             exit(0);
         } else if (iVmNum >= 1 && iVmNum <= 10) {
             printf("Your selection is VM %d\n", iVmNum);
-            char destVmIP[IP_LEN];
-            char msg[] = "1";
-            int destPort = SERV_WK_PORT;
+            //char destVmIP[IP_LEN];
+            //char msg[] = "1";
+            //int destPort = SERV_WK_PORT;
             getVmIP(destVmIP, iVmNum);
 #ifdef DEBUG
             prtItemString("Destination VM IP", destVmIP);
@@ -63,14 +66,15 @@ int main(int argc, char** argv) {
           
             //TODO: timeout 542 601
             //try pselect and sigalarm
-            alarm(50);
-            msg_send(iSockfd, destVmIP, destPort, msg, 0);
+
+            alarm(50);      // set alarm for 50 seconds
+            msg_send(iSockfd, destVmIP, destPort, msg, 0);    // client sending message
             printf("client at node vm %d sending request to server at vm %d\n", iLocalIndex, iVmNum);
 
             if(sigsetjmp(jmpbuf,1)!=0) {
             	if(choice) {
             		choice=0;
-            		goto client_request_send;
+            		goto client_request;
             	}
             	else {
             		choice=1;
@@ -79,6 +83,7 @@ int main(int argc, char** argv) {
             }
 
             receiving_message:
+            printf("waiting for response from server \n");
             msg_recv(iSockfd, msg, destVmIP, &destPort);
             choice=0;
             alarm(0);
@@ -87,8 +92,8 @@ int main(int argc, char** argv) {
             memset(timeBuf,0,sizeof(timeBuf));
 
             snprintf(timeBuf, sizeof(timeBuf), "%.24s\r\n", ctime(&ticks) );
-            printf("client at node vm %d received from vm %d %lu\n", iLocalIndex, getVmIndexByIP(destVmIP), timeBuf);
-
+            //printf("client at node vm %d received from vm %d %lu\n", iLocalIndex, getVmIndexByIP(destVmIP), timeBuf);
+            printf("client at node vm %d received from vm %d at : %s\n", iLocalIndex, getVmIndexByIP(destVmIP), timeBuf);
         }
     }
 
@@ -96,11 +101,11 @@ int main(int argc, char** argv) {
     exit(0);
 }
 
-static void sig_alrm(int signo) {
+static void timeout(int signo) {
 	     int iLocalIndex = getVmIndex();
-	     char destVmIP[IP_LEN];
-            char msg[] = "1";
-            int destPort = SERV_WK_PORT;
+	     //char destVmIP[IP_LEN];
+            //char msg[] = "1";
+            //int destPort = SERV_WK_PORT;
 	if(choice==0) {
 		printf("client at node vm%d: timeout on response from vm%d \n", iLocalIndex, getVmIndexByIP(destVmIP) );
 		printf("retransmitting message \n");

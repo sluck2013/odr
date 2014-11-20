@@ -109,7 +109,6 @@ static void timeout(int signo) {
 	if(choice==0) {
 		printf("client at node vm%d: timeout on response from vm%d \n", iLocalIndex, getVmIndexByIP(destVmIP) );
 		printf("retransmitting message \n");
-		choice=1;
 		alarm(50);
 		msg_send(iSockfd, destVmIP, destPort, msg, 1);
 	}

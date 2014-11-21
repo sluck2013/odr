@@ -32,8 +32,10 @@ typedef struct RREP {
 	//unsigned int lifetime;
 } RREP_t;
 
-void makeAppMsg();
+
+void makeAppMsg(AppMsg_t *AppMsg, char* srcIP, int srcPort, char* destIP, int destPort, char* msg);
 void makeRREQ(RREQ_t *RREQ, const char* destIP, const unsigned long int broadID);
-void makeRREP();
+void makeRREP(RREP_t *RREP, char* srcIP, char* destIP);
+
 
 #endif

@@ -7,6 +7,7 @@
 #include "PathTable.h"
 #include "OdrProtMsg.h"
 #include "ctype.h"
+#include "string.h"
 #include <linux/if_packet.h>
 #include <linux/if_ether.h>
 #include <linux/if_arp.h>
@@ -22,7 +23,7 @@ int main(int argc, char** argv) {
         errExit(msg);
     }
 
-    int isStale = 0; //TODO
+    int iIsStale = 0; //TODO
 
     // init path table
     pPathTab = createPathTable();
@@ -44,47 +45,73 @@ int main(int argc, char** argv) {
         errExit(ERR_CREATE_RAW_SOCK);
     }
 
+    int iMaxFd = max(iDomSock, iRawSock);
+    fd_set fsRSet, fsAllSet;
+    FD_ZERO(&fsAllSet);
+    FD_SET(iDomSock, &fsAllSet);
+    FD_SET(iRawSock, &fsAllSet);
+
+    while (1) {
+        fsRSet = fsAllSet;
+        select(iMaxFd + 1, &fsRSet, NULL, NULL, NULL); 
+        if FD_ISSET(iDomSock, &fsRSet) {
+            onDomSockAvailable(iDomSock, iRawSock, iIsStale);
+        }
+        if FD_ISSET(iRawSock, &fsRSet) {
+            onRawSockAvailable(iRawSock);
+        }
+    }
+    unlink(ODR_WK_PATH);
+}
+
+void onRawSockAvailable(const int iRawSock) {
+    printf("RECVING RAWDATA\n");fflush(stdout);
+    void* buffer = (void*)malloc(ETH_FRAME_LEN);
+    int n = recvfrom(iRawSock, buffer, ETH_FRAME_LEN, 0, NULL, NULL);
+    //if (n > 0) {
+    printf("recv %d\n", n);fflush(stdout);
+    //}
+}
+
+void onDomSockAvailable(const int iDomSock, const int iRawSock, const int iIsStale) {
     char pcReadBuf[MAXLINE + 1];
     char destIP[IP_LEN];
     int destPort, flag;
     char msg[2];
     struct sockaddr_un suSrcAddr;
     socklen_t len = sizeof(suSrcAddr);
-    while(1) {
-        int n = recvfrom(iDomSock, pcReadBuf, MAXLINE, 0, (SA*)&suSrcAddr, &len);
+    int n = recvfrom(iDomSock, pcReadBuf, MAXLINE, 0, (SA*)&suSrcAddr, &len);
 #ifdef DEBUG
-        printf("Received %d bytes from application.\n", n);
+    printf("Received %d bytes from application.\n", n);
 #endif
-        if (findPTabEntByPath(pPathTab, suSrcAddr.sun_path) == NULL) {
-            addToPathTable(pPathTab, getNewPTabPort(pPathTab), suSrcAddr.sun_path, PTAB_ENT_LIFETIME);
-        }
-        unpackAppData(pcReadBuf, destIP, &destPort, msg, &flag);
+    if (findPTabEntByPath(pPathTab, suSrcAddr.sun_path) == NULL) {
+        addToPathTable(pPathTab, getNewPTabPort(pPathTab), suSrcAddr.sun_path, PTAB_ENT_LIFETIME);
+    }
+    unpackAppData(pcReadBuf, destIP, &destPort, msg, &flag);
 #ifdef DEBUG
-        prtItemStr("destIP", destIP);
-        prtItemInt("destPort", destPort);
-        prtItemStr("msg", msg);
-        prtItemInt("flag", flag);
+    prtItemStr("destIP", destIP);
+    prtItemInt("destPort", destPort);
+    prtItemStr("msg", msg);
+    prtItemInt("flag", flag);
 #endif
 
-        RTabEnt_t *prEnt = getRTabEntByDest(pRouteTab, destIP);
-        if (prEnt == NULL || flag > 0 || isStale) {
-            //send RREQ
-            RREQ_t RREQ;
-            makeRREQ(&RREQ, destIP, ulBroadID++);
-            char localMac[MAC_LEN];
-            getLocalVmMac(localMac);
+    RTabEnt_t *prEnt = getRTabEntByDest(pRouteTab, destIP);
+    if (prEnt == NULL || flag > 0 || iIsStale) {
+        //send RREQ
+        RREQ_t RREQ;
+        makeRREQ(&RREQ, destIP, ulBroadID++);
+        char localMac[MAC_LEN];
+        getLocalVmMac(localMac);
 #ifdef DEBUG
-            prtItemStr("Str local Mac", localMac);
+        prtItemStr("Str local Mac", localMac);
 #endif
-            //create socket
-            char destMac[MAC_LEN] = ODR_BROADCAST_MAC;
-            sendRawFrame(iRawSock, destMac, localMac, (unsigned char*) & RREQ);
-        } else {
-            //send DATA
-        }
+        //create socket
+        char destMac[MAC_LEN] = ODR_BROADCAST_MAC;
+        //sendRawFrame(iRawSock, destMac, localMac, (unsigned char*) & RREQ);
+        sendRawFrame(iRawSock, destMac, localMac, (unsigned char*) "DDDDD");
+    } else {//TODO
+        //send DATA
     }
-    unlink(ODR_WK_PATH);
-    return 0;
 }
 
 int sendRawFrame(const int iSockfd, unsigned char* destAddr, unsigned char* srcAddr, const unsigned char* data) {
@@ -103,7 +130,7 @@ int sendRawFrame(const int iSockfd, unsigned char* destAddr, unsigned char* srcA
 
     /*prepare sockaddr_ll*/
     sockAddr.sll_family   = PF_PACKET;	
-    sockAddr.sll_protocol = htons(ETH_P_IP); //not in use	
+    sockAddr.sll_protocol = htons(ETH_PROT_VALUE);
     sockAddr.sll_ifindex  = ETH_IF_INDEX;
     sockAddr.sll_hatype   = ARPHRD_ETHER;
     sockAddr.sll_pkttype  = PACKET_OTHERHOST;
@@ -119,16 +146,21 @@ int sendRawFrame(const int iSockfd, unsigned char* destAddr, unsigned char* srcA
     /*set the frame header*/
     memcpy((void*)buffer, (void*)destMac, ETH_ALEN);
     memcpy((void*)(buffer+ETH_ALEN), (void*)srcMac, ETH_ALEN);
-    eh->h_proto = 0x00;
+    //eh->h_proto = 0x00;
+    eh->h_proto = htons(ETH_PROT_VALUE);
     /*fill the frame with some data*/
     memcpy(usrData, data, sizeof(data));
 
     /*send the packet*/
     int n = sendto(iSockfd, buffer, ETH_FRAME_LEN, 0, 
-            (struct sockaddr*)&sockAddr, sizeof(sockAddr));
+            (SA*)&sockAddr, sizeof(sockAddr));
     if (n == -1) {
         prtErr(ERR_SEND_RAW_DATA);
     }
+#ifdef DEBUG
+    printf("sent %d bytes.\n", n);
+    fflush(stdout);
+#endif
     return n;
 }
 

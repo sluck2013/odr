@@ -2,7 +2,7 @@
 #define CONSTANTS_H
 
 #define DEBUG
-#define LDEBUG
+//#define LDEBUG
 #define IP_LEN (16)
 #define MAC_LEN (18)
 #define VM_NUM (10)
@@ -25,17 +25,12 @@
 
 #ifdef LDEBUG
 #define ODR_IF_NAME "wlan0"
+#define ETH_IF_INDEX (3)
 #else
 #define ODR_IF_NAME "eth0"
+#define ETH_IF_INDEX (2)
 #endif
 
 #define ETH_PROT_VALUE (10939)
-#define ETH_IF_INDEX (2)
-#define ETH_FRAME_LEN (1518)
-
-#define ASCII_0 48
-#define ASCII_9 57
-#define ASCII_A 65
-#define ASCII_F 70
 
 #endif

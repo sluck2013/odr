@@ -107,10 +107,10 @@ unsigned char hexStr2UChar(char const* str) {
         r <<= 4;
         char c = toupper(*(str + i));
 
-        if (c >= ASCII_0 && c <= ASCII_9) {
-            r += c - ASCII_0;
-        } else if (c >= ASCII_A && c <= ASCII_F) {
-            r += c - ASCII_A + 10;
+        if (c >= '0' && c <= '9') {
+            r += c - '0';
+        } else if (c >= 'A' && c <= 'F') {
+            r += c - 'A' + 10;
         }
     }
     return r;

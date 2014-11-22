@@ -65,12 +65,14 @@ int main(int argc, char** argv) {
 }
 
 void onRawSockAvailable(const int iRawSock) {
-    printf("RECVING RAWDATA\n");fflush(stdout);
     void* buffer = (void*)malloc(ETH_FRAME_LEN);
     int n = recvfrom(iRawSock, buffer, ETH_FRAME_LEN, 0, NULL, NULL);
-    //if (n > 0) {
-    printf("recv %d\n", n);fflush(stdout);
-    //}
+    if (n > 0) {
+        printf("recv %d\n", n);
+        RREQ_t r;
+        parseRREQ(&r, buffer+14);
+        printf("%s\n",r.srcIP);
+    }
 }
 
 void onDomSockAvailable(const int iDomSock, const int iRawSock, const int iIsStale) {
@@ -107,14 +109,13 @@ void onDomSockAvailable(const int iDomSock, const int iRawSock, const int iIsSta
 #endif
         //create socket
         char destMac[MAC_LEN] = ODR_BROADCAST_MAC;
-        //sendRawFrame(iRawSock, destMac, localMac, (unsigned char*) & RREQ);
-        sendRawFrame(iRawSock, destMac, localMac, (unsigned char*) "DDDDD");
+        sendRawFrame(iRawSock, destMac, localMac, (void*)&RREQ);
     } else {//TODO
         //send DATA
     }
 }
 
-int sendRawFrame(const int iSockfd, unsigned char* destAddr, unsigned char* srcAddr, const unsigned char* data) {
+int sendRawFrame(const int iSockfd, unsigned char* destAddr, unsigned char* srcAddr, void* data) {
     struct sockaddr_ll sockAddr;
     void* buffer = (void*)malloc(ETH_FRAME_LEN);
     unsigned char* etherhead = buffer;

@@ -32,5 +32,6 @@
 #endif
 
 #define ETH_PROT_VALUE (10939)
+#define ETH_DATA_LEN (1496)
 
 #endif

@@ -15,6 +15,7 @@
 #define ERR_RECVFROM "recvfrom error"
 #define ERR_SEND_RAW_DATA "Sending data via raw socket"
 #define ERR_CREATE_RAW_SOCK "Creating raw socket failed!"
+#define ERR_RAW_RECV "Receiving data via raw socket."
 
 #define SERV_WK_PATH "109399621"
 #define SERV_WK_PORT (39962)
@@ -33,5 +34,8 @@
 
 #define ETH_PROT_VALUE (10939)
 #define ETH_DATA_LEN (1496)
+#define ETH_DATA_OFFSET (14)
+
+#define RREQ_SIZE (8+2*IP_LEN)
 
 #endif

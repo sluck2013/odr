@@ -2,6 +2,8 @@
 #define ODRPROTMSG_H
 
 #include "constants.h"
+#include "stdlib.h"
+#include "string.h"
 
 //type 2
 typedef struct AppMsg {
@@ -15,6 +17,7 @@ typedef struct AppMsg {
 } AppMsg_t;
 
 //type 0
+//if RREQ changes, RREQ_SIZE should be changed accordingly
 typedef struct RREQ {
     unsigned short int type;
 	unsigned long int broadID;
@@ -33,9 +36,10 @@ typedef struct RREP {
 } RREP_t;
 
 void makeAppMsg();
-void makeRREQ(RREQ_t *RREQ, const char* destIP, const unsigned long int broadID);
 void makeRREP();
 
-void parseRREQ(RREQ_t* RREQ, const void* src);
+void makeRREQ(RREQ_t *RREQ, const char* destIP, const unsigned long int broadID);
+void marshalRREQ(void* dest, const RREQ_t* RREQ);
+void unmarshalRREQ(RREQ_t* RREQ, const void* src);
 
 #endif

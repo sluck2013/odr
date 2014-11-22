@@ -118,6 +118,9 @@ unsigned char hexStr2UChar(char const* str) {
 
 void prtErr(const char *msg) {
     printf("ERROR: %s\n", msg);
+    /*if (errno != 0) {
+        printf("DETAILS: %s\n", strerr(errno));
+    }*/
     fflush(stdout);
 }
 
@@ -132,6 +135,11 @@ void prtItemInt(const char *key, const int value) {
 
 void prtItemStr(const char *key, const char* value) {
     printf("%s: %s\n", key, value);
+}
+
+void prtMsg(const char *key) {
+    printf("%s\n", key);
+    fflush(stdout);
 }
 
 #ifdef DEBUG

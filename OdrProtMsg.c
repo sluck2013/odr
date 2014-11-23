@@ -25,16 +25,16 @@ void marshalRREQ(void* dest, const RREQ_t* RREQ) {
     memcpy(dest, (void*)&RREQ->type, sizeof(RREQ->type));
     memcpy(dest + 2, (void*)&RREQ->broadID, sizeof(RREQ->broadID));
     memcpy(dest + 10, (void*)&RREQ->hopCnt, sizeof(RREQ->hopCnt));
-    memcpy(dest + 12, (void*)RREQ->srcIP, sizeof(RREQ->srcIP));
-    memcpy(dest + 12 + IP_LEN, (void*)RREQ->destIP, sizeof(RREQ->destIP));
+    memcpy(dest + 12, (void*)RREQ->srcIP, IP_LEN);
+    memcpy(dest + 12 + IP_LEN, (void*)RREQ->destIP, IP_LEN);
 }
 
 void unmarshalRREQ(RREQ_t* RREQ, const void* src) {
     memcpy((void*)&RREQ->type, src, sizeof(RREQ->type));
     memcpy((void*)&RREQ->broadID, src + 2, sizeof(RREQ->broadID));
     memcpy((void*)&RREQ->hopCnt, src + 10, sizeof(RREQ->hopCnt));
-    memcpy((void*)RREQ->srcIP, src + 12, sizeof(RREQ->srcIP));
-    memcpy((void*)RREQ->destIP, src + 12 + IP_LEN, sizeof(RREQ->srcIP));
+    memcpy((void*)RREQ->srcIP, src + 12, IP_LEN);
+    memcpy((void*)RREQ->destIP, src + 12 + IP_LEN, IP_LEN);
 }
 
 unsigned short int incHopCnt(RREQ_t* RREQ) {

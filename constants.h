@@ -3,7 +3,7 @@
 
 #define DEBUG
 //#define LDEBUG
-#define IP_LEN (16)
+#define IP_LEN (18)
 #define MAC_LEN (6)
 #define VM_NUM (10)
 #define MAX_EPORT (65535)

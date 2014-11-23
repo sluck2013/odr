@@ -52,6 +52,10 @@ void setRespBit(RREQ_t* RREQ) {
     RREQ->isResponsed = 1;
 }
 
+int isResponsed(const RREQ_t* RREQ) {
+    return RREQ->isResponsed;
+}
+
 void prtRREQ(const RREQ_t *RREQ) {
     printf("broadID: %lu, hopCnt: %u, src: %s, dest: %s, replied: %d\n",
             RREQ->broadID, RREQ->hopCnt, RREQ->srcIP, RREQ->destIP, RREQ->isResponsed);

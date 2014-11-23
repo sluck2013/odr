@@ -177,6 +177,9 @@ void onRecvRREQ(RREQ_t* pRREQ, const struct sockaddr_ll *srcAddr) {
         prtMsg("Reached destination");
 #endif
         //RREP
+        if (isResponsed(pRREQ)) {
+            return;
+        }
         RREP_t RREP;
         makeRREP(&RREP, pRREQ, 0);
         void* bufRREP = malloc(RREP_SIZE);
@@ -205,23 +208,24 @@ void onRecvRREQ(RREQ_t* pRREQ, const struct sockaddr_ll *srcAddr) {
             prtMsg("Current node has destination routing info");
 #endif
             //RREP
-            RREP_t RREP;
-            makeRREP(&RREP, pRREQ, ent->distToDest);
-            void* bufRREP = malloc(RREP_SIZE);
-            marshalRREP(bufRREP, &RREP);
-            RTabEnt_t *e = getRTabEntByDest(pRouteTab, RREP.srcIP);
-            int ifidx = e->outIfIndex;
-            int aridx = getArrIdxByIfIdx(ifidx);
-            sendRawFrame(iRawSock, e->nextNode, arrIfInfo[aridx].mac, ifidx, bufRREP);
+            if (!isResponsed(pRREQ)) {
+                RREP_t RREP;
+                makeRREP(&RREP, pRREQ, ent->distToDest);
+                void* bufRREP = malloc(RREP_SIZE);
+                marshalRREP(bufRREP, &RREP);
+                RTabEnt_t *e = getRTabEntByDest(pRouteTab, RREP.srcIP);
+                int ifidx = e->outIfIndex;
+                int aridx = getArrIdxByIfIdx(ifidx);
+                sendRawFrame(iRawSock, e->nextNode, arrIfInfo[aridx].mac, ifidx, bufRREP);
 #ifdef DEBUG
-            prtMac("Sent RREP to", e->nextNode);
-            prtItemInt("Out ifindex", ifidx);
-            prtRREP(&RREP);
-            prtln();
+                prtMac("Sent RREP to", e->nextNode);
+                prtItemInt("Out ifindex", ifidx);
+                prtRREP(&RREP);
+                prtln();
 #endif
-
+                setRespBit(pRREQ);
+            }
             incHopCnt(pRREQ);
-            setRespBit(pRREQ);
             floodRREQ(iRawSock, srcAddr->sll_ifindex, pRREQ, 0);
             
         }

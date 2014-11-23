@@ -44,6 +44,7 @@ unsigned short int incHopCnt(RREQ_t* RREQ);
 void prtRREQ(const RREQ_t *RREQ);
 void setBroadID(RREQ_t* RREQ, const unsigned long int broadID);
 void setRespBit(RREQ_t* RREQ);
+int isResponsed(const RREQ_t* RREQ);
 
 void makeRREP(RREP_t *RREP, const RREQ_t *RREQ, const unsigned short int hopCnt);
 void marshalRREP(void* dest, const RREP_t* RREP);

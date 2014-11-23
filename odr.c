@@ -80,6 +80,7 @@ void onRawSockAvailable() {
     int len = sizeof(srcAddr);
     void* buffer = malloc(ETH_FRAME_LEN);
     int n = recvfrom(iRawSock, buffer, ETH_FRAME_LEN, 0, (SA*)&srcAddr, &len);
+    printf("====INDEX====: %d\n", srcAddr.sll_ifindex);
     if (n < 0) {
         prtErr(ERR_RAW_RECV);
     }
@@ -147,7 +148,7 @@ void onDomSockAvailable(const int iIsStale) {
 void onRecvRREQ(RREQ_t* pRREQ, const struct sockaddr_ll *srcAddr) {
 #ifdef DEBUG
     prtMac("Received RREQ from", srcAddr->sll_addr);
-    prtItemInt("In ifIndex", srcAddr->sll_ifindex);
+    prtItemInt("Incoming ifIndex", srcAddr->sll_ifindex);
     prtRREQ(pRREQ);
     prtln();
 #endif
@@ -201,7 +202,7 @@ void onRecvRREQ(RREQ_t* pRREQ, const struct sockaddr_ll *srcAddr) {
             prtMsg("Reached intermediate node");
 #endif
             //relay RREQ
-            incHopCnt(pRREQ);
+            incRREQHopCnt(pRREQ);
             floodRREQ(iRawSock, srcAddr->sll_ifindex, pRREQ, 0);
         } else {
 #ifdef DEBUG
@@ -225,14 +226,51 @@ void onRecvRREQ(RREQ_t* pRREQ, const struct sockaddr_ll *srcAddr) {
 #endif
                 setRespBit(pRREQ);
             }
-            incHopCnt(pRREQ);
+            incRREQHopCnt(pRREQ);
             floodRREQ(iRawSock, srcAddr->sll_ifindex, pRREQ, 0);
             
         }
     }
 }
 
-void onRecvRREP(RREP_t* RREP, const struct sockaddr_ll *incomingAddr) {
+void onRecvRREP(RREP_t* pRREP, const struct sockaddr_ll *incomingAddr) {
+    RTabEnt_t* ent = getRTabEntByDest(pRouteTab, pRREP->destIP);
+    if (ent == NULL) {
+        addToRTab(pRouteTab, pRREP->destIP, incomingAddr->sll_addr, incomingAddr->sll_ifindex, pRREP->hopCnt + 1);
+    } else {
+        if (pRREP->hopCnt + 1 < ent->distToDest) {
+            updateRTabEnt(ent, incomingAddr->sll_addr, incomingAddr->sll_ifindex, pRREP->hopCnt + 1);
+        } else {
+            return;
+        }
+    }
+
+    char localIP[IP_LEN];
+    getLocalVmIP(localIP);
+    if (strcmp(localIP, pRREP->srcIP) == 0) {
+#ifdef DEBUG
+        prtMsg("RREP reached src node");
+#endif
+        
+    } else {
+#ifdef DEBUG
+        prtMsg("RREP reached intermediate node");
+#endif
+        RTabEnt_t* eSrc = getRTabEntByDest(pRouteTab, pRREP->srcIP);
+        int ifidx = eSrc->outIfIndex;
+        int aridx = getArrIdxByIfIdx(ifidx);
+        incRREPHopCnt(pRREP);
+        void *bufRREP = malloc(RREP_SIZE);
+        marshalRREP(bufRREP, pRREP);
+        sendRawFrame(iRawSock, eSrc->nextNode, arrIfInfo[aridx].mac, ifidx, bufRREP);
+        free(bufRREP);
+#ifdef DEBUG
+        prtMac("Sent RREP to", eSrc->nextNode);
+        prtRREP(pRREP);
+        prtItemInt("Out ifindex", ifidx);
+        prtln();
+#endif
+    }
 }
 
 void floodRREQ(const int iSockfd, const int incomeIfIdx, RREQ_t *pRREQ, const int isSrc) {

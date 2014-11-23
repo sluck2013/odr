@@ -40,7 +40,7 @@ typedef struct RREP {
 void makeRREQ(RREQ_t *RREQ, const char* destIP, const unsigned long int broadID);
 void marshalRREQ(void* dest, const RREQ_t* RREQ);
 void unmarshalRREQ(RREQ_t* RREQ, const void* src);
-unsigned short int incHopCnt(RREQ_t* RREQ);
+unsigned short int incRREQHopCnt(RREQ_t* RREQ);
 void prtRREQ(const RREQ_t *RREQ);
 void setBroadID(RREQ_t* RREQ, const unsigned long int broadID);
 void setRespBit(RREQ_t* RREQ);
@@ -50,5 +50,6 @@ void makeRREP(RREP_t *RREP, const RREQ_t *RREQ, const unsigned short int hopCnt)
 void marshalRREP(void* dest, const RREP_t* RREP);
 void unmarshalRREP(RREP_t* RREP, const void* src);
 void prtRREP(const RREP_t *RREP);
+unsigned short int incRREPHopCnt(RREP_t* RREP);
 
 #endif

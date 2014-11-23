@@ -40,3 +40,20 @@ void unmarshalRREQ(RREQ_t* RREQ, const void* src) {
 unsigned short int incHopCnt(RREQ_t* RREQ) {
     return ++RREQ->hopCnt;
 }
+
+
+void makeRREP(RREP_t *RREP, const RREQ_t *RREQ, const unsigned short int hopCnt) {
+    strcpy(RREP->srcIP, RREQ->srcIP);
+    strcpy(RREP->destIP, RREQ->destIP);
+    RREP->hopCnt = hopCnt;
+}
+
+void marshalRREP(void* dest, const RREP_t* RREP) {
+    memcpy(dest, (void*)&RREP->type, sizeof(RREP->type));
+    memcpy(dest + 2, (void*)&RREP->hopCnt, sizeof(RREP->hopCnt));
+    memcpy(dest + 4, (void*)&RREP->srcIP, sizeof(RREP->srcIP));
+    memcpy(dest + 4 + IP_LEN, (void*)RREP->destIP, sizeof(RREP->destIP));
+}
+
+void unmarshalRREP(RREP_t* RREP, const void* src) {
+}

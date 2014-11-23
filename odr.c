@@ -143,40 +143,56 @@ void onDomSockAvailable(const int iIsStale) {
     }
 }
 
-void onRecvRREQ(RREQ_t* RREQ, const struct sockaddr_ll *srcAddr) {
+void onRecvRREQ(RREQ_t* pRREQ, const struct sockaddr_ll *srcAddr) {
     // add "reverse" route to route table
-    RTabEnt_t *ent = getRTabEntByDest(pRouteTab, RREQ->srcIP);
+    RTabEnt_t *ent = getRTabEntByDest(pRouteTab, pRREQ->srcIP);
     if (ent == NULL) {
-        addToRTab(pRouteTab, RREQ->srcIP, srcAddr->sll_addr, 
-                srcAddr->sll_ifindex, RREQ->hopCnt + 1);
+        addToRTab(pRouteTab, pRREQ->srcIP, srcAddr->sll_addr, 
+                srcAddr->sll_ifindex, pRREQ->hopCnt + 1);
     } else {
-        if (RREQ->hopCnt + 1 > ent->distToDest
+        if (pRREQ->hopCnt + 1 > ent->distToDest
                 && strcmp(srcAddr->sll_addr, ent->nextNode) == 0
                 && srcAddr->sll_ifindex == ent->outIfIndex ) {
             return;
         }
-        updateRTabEnt(ent, srcAddr->sll_addr, srcAddr->sll_ifindex, RREQ->hopCnt + 1);
+        updateRTabEnt(ent, srcAddr->sll_addr, srcAddr->sll_ifindex, pRREQ->hopCnt + 1);
     }
 
 
     // relay RREQ or send back RREP
     char pcLocalIP[IP_LEN];
     getLocalVmIP(pcLocalIP);
-    if (memcmp(pcLocalIP, RREQ->destIP, MAC_LEN) == 0) {
+    if (memcmp(pcLocalIP, pRREQ->destIP, MAC_LEN) == 0) {
         //RREP
+        RREP_t RREP;
+        makeRREP(&RREP, pRREQ, 0);
+        void* bufRREP = malloc(RREP_SIZE);
+        marshalRREP(bufRREP, &RREP);
+        RTabEnt_t *ent = getRTabEntByDest(pRouteTab, RREP.srcIP);
+        unsigned char localMac[MAC_LEN];
+        getLocalVmMac(localMac);
+        sendRawFrame(iRawSock, ent->nextNode, localMac, bufRREP);
     }
-    ent = getRTabEntByDest(pRouteTab, RREQ->destIP);
+    ent = getRTabEntByDest(pRouteTab, pRREQ->destIP);
     if (ent == NULL) {
         //relay RREQ
         void* bufRREQ = malloc(RREQ_SIZE);
-        incHopCnt(RREQ);
-        marshalRREQ(bufRREQ, RREQ);
+        incHopCnt(pRREQ);
+        marshalRREQ(bufRREQ, pRREQ);
         unsigned char localMac[MAC_LEN];
         getLocalVmMac(localMac);
         unsigned char destMac[MAC_LEN] = ODR_BROADCAST_MAC;
         sendRawFrame(iRawSock, destMac, localMac, bufRREQ);
     } else {
         //RREP
+        RREP_t RREP;
+        makeRREP(&RREP, pRREQ, ent->distToDest);
+        void* bufRREP = malloc(RREP_SIZE);
+        marshalRREP(bufRREP, &RREP);
+        RTabEnt_t *e = getRTabEntByDest(pRouteTab, RREP.srcIP);
+        unsigned char localMac[MAC_LEN];
+        getLocalVmMac(localMac);
+        sendRawFrame(iRawSock, e->nextNode, localMac, bufRREP);
     }
 }
 

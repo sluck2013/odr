@@ -38,5 +38,6 @@
 #define ETH_DATA_OFFSET (14)
 
 #define RREQ_SIZE (8+2*IP_LEN)
+#define RREP_SIZE (4+2*IP_LEN)
 
 #endif

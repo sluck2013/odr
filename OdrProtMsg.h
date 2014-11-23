@@ -28,19 +28,21 @@ typedef struct RREQ {
 
 //type 1
 typedef struct RREP {
-    int type;
+    unsigned short int type;
+	unsigned short int hopCnt;
 	char srcIP[IP_LEN];
 	char destIP[IP_LEN];
-	unsigned int hopCnt;
 	//unsigned int lifetime;
 } RREP_t;
 
-void makeAppMsg();
-void makeRREP();
 
 void makeRREQ(RREQ_t *RREQ, const char* destIP, const unsigned long int broadID);
 void marshalRREQ(void* dest, const RREQ_t* RREQ);
 void unmarshalRREQ(RREQ_t* RREQ, const void* src);
 unsigned short int incHopCnt(RREQ_t* RREQ);
+
+void makeRREP(RREP_t *RREP, const RREQ_t *RREQ, const unsigned short int hopCnt);
+void marshalRREP(void* dest, const RREP_t* RREP);
+void unmarshalRREP(RREP_t* RREP, const void* src);
 
 #endif

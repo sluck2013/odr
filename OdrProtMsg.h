@@ -7,7 +7,7 @@
 
 //type 2
 typedef struct AppMsg {
-	int type;
+	unsigned char type;
 	char srcIP[IP_LEN];
 	int srcPort;
 	char destIP[IP_LEN];
@@ -19,7 +19,8 @@ typedef struct AppMsg {
 //type 0
 //if RREQ changes, RREQ_SIZE should be changed accordingly
 typedef struct RREQ {
-    unsigned short int type;
+    unsigned char type;
+    unsigned char isResponsed;
 	unsigned long int broadID;
 	unsigned short int hopCnt;
 	char srcIP[IP_LEN];
@@ -28,7 +29,7 @@ typedef struct RREQ {
 
 //type 1
 typedef struct RREP {
-    unsigned short int type;
+    unsigned char type;
 	unsigned short int hopCnt;
 	char srcIP[IP_LEN];
 	char destIP[IP_LEN];
@@ -42,9 +43,11 @@ void unmarshalRREQ(RREQ_t* RREQ, const void* src);
 unsigned short int incHopCnt(RREQ_t* RREQ);
 void prtRREQ(const RREQ_t *RREQ);
 void setBroadID(RREQ_t* RREQ, const unsigned long int broadID);
+void setRespBit(RREQ_t* RREQ);
 
 void makeRREP(RREP_t *RREP, const RREQ_t *RREQ, const unsigned short int hopCnt);
 void marshalRREP(void* dest, const RREP_t* RREP);
 void unmarshalRREP(RREP_t* RREP, const void* src);
+void prtRREP(const RREP_t *RREP);
 
 #endif

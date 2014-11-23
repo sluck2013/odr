@@ -83,7 +83,7 @@ void onRawSockAvailable() {
     if (n < 0) {
         prtErr(ERR_RAW_RECV);
     }
-    unsigned short int iMsgType;
+    unsigned char iMsgType;
     memcpy((void*)&iMsgType, buffer + ETH_DATA_OFFSET, sizeof(iMsgType));
     switch (iMsgType) {
         case 0:
@@ -94,9 +94,11 @@ void onRawSockAvailable() {
             onRecvRREQ(&RREQ, &srcAddr);
             break;
         case 1:
-#ifdef DEBUG
-            
-#endif
+            ; // don't remove it
+            RREP_t RREP;
+            unmarshalRREP(&RREP, buffer + ETH_DATA_OFFSET);
+            free(buffer);
+            onRecvRREP(&RREP, &srcAddr);
             break;
         case 2:
 #ifdef DEBUG
@@ -183,6 +185,12 @@ void onRecvRREQ(RREQ_t* pRREQ, const struct sockaddr_ll *srcAddr) {
         int ifidx = ent->outIfIndex;
         int aridx = getArrIdxByIfIdx(ifidx);
         sendRawFrame(iRawSock, ent->nextNode, arrIfInfo[aridx].mac, ifidx, bufRREP);
+#ifdef DEBUG
+        prtMac("Sent RREP to", ent->nextNode);
+        prtItemInt("Out ifindex", ifidx);
+        prtRREP(&RREP);
+        prtln();
+#endif
     } else {
         ent = getRTabEntByDest(pRouteTab, pRREQ->destIP);
         if (ent == NULL) {
@@ -204,11 +212,23 @@ void onRecvRREQ(RREQ_t* pRREQ, const struct sockaddr_ll *srcAddr) {
             RTabEnt_t *e = getRTabEntByDest(pRouteTab, RREP.srcIP);
             int ifidx = e->outIfIndex;
             int aridx = getArrIdxByIfIdx(ifidx);
-            //getLocalVmMac(localMac);
             sendRawFrame(iRawSock, e->nextNode, arrIfInfo[aridx].mac, ifidx, bufRREP);
+#ifdef DEBUG
+            prtMac("Sent RREP to", e->nextNode);
+            prtItemInt("Out ifindex", ifidx);
+            prtRREP(&RREP);
+            prtln();
+#endif
+
+            incHopCnt(pRREQ);
+            setRespBit(pRREQ);
+            floodRREQ(iRawSock, srcAddr->sll_ifindex, pRREQ, 0);
             
         }
     }
+}
+
+void onRecvRREP(RREP_t* RREP, const struct sockaddr_ll *incomingAddr) {
 }
 
 void floodRREQ(const int iSockfd, const int incomeIfIdx, RREQ_t *pRREQ, const int isSrc) {
@@ -274,8 +294,8 @@ int sendRawFrame(const int iSockfd, const unsigned char* destAddr,
         prtErr(ERR_SEND_RAW_DATA);
     }
 #ifdef DEBUG
-    printf("sent %d bytes.\n", n);
-    fflush(stdout);
+//    printf("sent %d bytes.\n", n);
+//    fflush(stdout);
 #endif
     return n;
 }

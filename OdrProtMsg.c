@@ -36,3 +36,7 @@ void unmarshalRREQ(RREQ_t* RREQ, const void* src) {
     memcpy((void*)RREQ->srcIP, src + 8, sizeof(RREQ->srcIP));
     memcpy((void*)RREQ->destIP, src + 8 + IP_LEN, sizeof(RREQ->srcIP));
 }
+
+unsigned short int incHopCnt(RREQ_t* RREQ) {
+    return ++RREQ->hopCnt;
+}

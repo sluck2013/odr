@@ -5,7 +5,7 @@
 
 typedef struct RouteTableEntry {
     char destIP[IP_LEN];
-    char nextNode[IP_LEN];
+    unsigned char nextNode[MAC_LEN];
     int outIfIndex;
     int distToDest;
     unsigned long int lastUpdated;
@@ -20,6 +20,11 @@ typedef struct RouteTable {
 
 
 RTab_t *createRouteTable();
+void deleteRouteTable(RTab_t* t);
+int isRTabEmpty(const RTab_t *t);
+
 RTabEnt_t *getRTabEntByDest(const RTab_t* rTable, const char* destIP);
+RTabEnt_t *addToRTab(RTab_t *table, const char* destIP, const unsigned char *nextNodeMac, const int outIfIndex, const int distToDest);
+RTabEnt_t *updateRTabEnt(RTabEnt_t *ent, const unsigned char *nextNodeMac, const int outIfIndex, const int distToDest);
 
 #endif

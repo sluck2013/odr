@@ -31,7 +31,7 @@ main (int argc, char **argv)
 			ptr = hwa->if_haddr;
 			i = IF_HADDR;
 			do {
-				printf("%.2x%s", *ptr++ & 0xff, (i == 1) ? " " : ":");
+				printf("%.2x%s", *ptr++/* & 0xff*/, (i == 1) ? " " : ":");
 			} while (--i > 0);
 		}
 

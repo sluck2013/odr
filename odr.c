@@ -83,7 +83,7 @@ void onRawSockAvailable() {
             RREQ_t RREQ;
             unmarshalRREQ(&RREQ, buffer + ETH_DATA_OFFSET);
             free(buffer);
-            onRecvRREQ(&RREQ);
+            onRecvRREQ(&RREQ, &srcAddr);
             break;
         case 1:
 #ifdef DEBUG
@@ -128,13 +128,14 @@ void onDomSockAvailable(const int iIsStale) {
         makeRREQ(&RREQ, destIP, ulBroadID++);
         void* bufRREQ = malloc(RREQ_SIZE);
         marshalRREQ(bufRREQ, &RREQ);
-        char localMac[MAC_LEN];
+        unsigned char localMac[MAC_LEN];
         getLocalVmMac(localMac);
 #ifdef DEBUG
-        prtItemStr("Str local Mac", localMac);
+        prtMac("local mac", localMac);
 #endif
         //create socket
-        char destMac[MAC_LEN] = ODR_BROADCAST_MAC;
+        unsigned char destMac[MAC_LEN] = ODR_BROADCAST_MAC;
+        addToRTab(pRouteTab, RREQ.srcIP, localMac, ETH_IF_INDEX, 0);
         sendRawFrame(iRawSock, destMac, localMac, bufRREQ);
         free(bufRREQ);
     } else {//TODO
@@ -142,18 +143,53 @@ void onDomSockAvailable(const int iIsStale) {
     }
 }
 
-void onRecvRREQ(const RREQ_t* RREQ) {
+void onRecvRREQ(RREQ_t* RREQ, const struct sockaddr_ll *srcAddr) {
+    // add "reverse" route to route table
+    RTabEnt_t *ent = getRTabEntByDest(pRouteTab, RREQ->srcIP);
+    if (ent == NULL) {
+        addToRTab(pRouteTab, RREQ->srcIP, srcAddr->sll_addr, 
+                srcAddr->sll_ifindex, RREQ->hopCnt + 1);
+    } else {
+        if (RREQ->hopCnt + 1 > ent->distToDest
+                && strcmp(srcAddr->sll_addr, ent->nextNode) == 0
+                && srcAddr->sll_ifindex == ent->outIfIndex ) {
+            return;
+        }
+        updateRTabEnt(ent, srcAddr->sll_addr, srcAddr->sll_ifindex, RREQ->hopCnt + 1);
+    }
+
+
+    // relay RREQ or send back RREP
+    char pcLocalIP[IP_LEN];
+    getLocalVmIP(pcLocalIP);
+    if (memcmp(pcLocalIP, RREQ->destIP, MAC_LEN) == 0) {
+        //RREP
+    }
+    ent = getRTabEntByDest(pRouteTab, RREQ->destIP);
+    if (ent == NULL) {
+        //relay RREQ
+        void* bufRREQ = malloc(RREQ_SIZE);
+        incHopCnt(RREQ);
+        marshalRREQ(bufRREQ, RREQ);
+        unsigned char localMac[MAC_LEN];
+        getLocalVmMac(localMac);
+        unsigned char destMac[MAC_LEN] = ODR_BROADCAST_MAC;
+        sendRawFrame(iRawSock, destMac, localMac, bufRREQ);
+    } else {
+        //RREP
+    }
 }
 
-int sendRawFrame(const int iSockfd, unsigned char* destAddr, unsigned char* srcAddr, void* data) {
+int sendRawFrame(const int iSockfd, const unsigned char* destAddr, 
+        const unsigned char* srcAddr, const void* data) {
     struct sockaddr_ll sockAddr;
     void* buffer = malloc(ETH_FRAME_LEN);
     unsigned char* etherhead = buffer;
     void* usrData = buffer + ETH_DATA_OFFSET;
     struct ethhdr *eh = (struct ethhdr *)etherhead;;
-    unsigned char srcMac[6], destMac[6];
-    setMacAddr(srcMac, srcAddr);
-    setMacAddr(destMac, destAddr);
+    unsigned char srcMac[MAC_LEN], destMac[MAC_LEN];
+    memcpy(srcMac, srcAddr, MAC_LEN);
+    memcpy(destMac, destAddr, MAC_LEN);
 #ifdef DEBUG
     prtMac("srcMac", srcMac);
     prtMac("destMac", destMac);
@@ -167,10 +203,7 @@ int sendRawFrame(const int iSockfd, unsigned char* destAddr, unsigned char* srcA
     sockAddr.sll_pkttype  = PACKET_OTHERHOST;
     sockAddr.sll_halen    = ETH_ALEN;		
     /*MAC - begin*/
-    for (int i = 0; i < 6; ++i) {
-        sockAddr.sll_addr[i] = destMac[i];
-    }
-    /*MAC - end*/
+    memcpy(sockAddr.sll_addr, destMac, MAC_LEN);
     sockAddr.sll_addr[6]  = 0x00;/*not used*/
     sockAddr.sll_addr[7]  = 0x00;/*not used*/
 
@@ -195,6 +228,7 @@ int sendRawFrame(const int iSockfd, unsigned char* destAddr, unsigned char* srcA
     return n;
 }
 
+/*
 void setMacAddr(unsigned char* target, unsigned char* src) {
     target[0] = hexStr2UChar(strtok(src, ":"));
     for (int i = 1; i < 5; ++i) {
@@ -202,3 +236,4 @@ void setMacAddr(unsigned char* target, unsigned char* src) {
     }
     target[5] = hexStr2UChar(&src[15]);
 }
+*/

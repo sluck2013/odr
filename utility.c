@@ -69,7 +69,7 @@ void getLocalVmIP(char* localIP) {
     localIP[0] = '\0';
 }
 
-void getLocalVmMac(char* localMac) {
+void getLocalVmMac(unsigned char* localMac) {
     struct hwa_info *hwa, *hwaHead;
     hwa = hwaHead = Get_hw_addrs();
     for (; hwa != NULL; hwa = hwa->hwa_next) {
@@ -77,6 +77,7 @@ void getLocalVmMac(char* localMac) {
         char* pcIfName = hwa->if_name;
         //get eth0 address
         if (strcmp(pcIfName, ODR_IF_NAME) == 0) {
+            /*
             char* ptr = hwa->if_haddr;
             int i = IF_HADDR;
             char* wrPtr = localMac;
@@ -84,6 +85,8 @@ void getLocalVmMac(char* localMac) {
                 sprintf(wrPtr, "%.2x%s", *ptr++ & 0xff, (i == 1) ? "" : ":");
                 wrPtr += 3;
             } while (--i > 0);
+            */
+            memcpy(localMac, hwa->if_haddr, 6);
             return;
         }
     }
@@ -146,8 +149,8 @@ void prtMsg(const char *key) {
 void prtMac(const char* title, const unsigned char* mac) {
     printf("%s: ", title);
     for (int i = 0; i < 5; ++i) {
-        printf("%x:", mac[i]);
+        printf("%.2x:", mac[i]);
     }
-    printf("%x\n", mac[5]);
+    printf("%.2x\n", mac[5]);
 }
 #endif

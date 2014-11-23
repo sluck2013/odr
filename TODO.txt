@@ -3,3 +3,9 @@ check mem leak
     free malloc
 EINTER
 temp file path
+make interface index variable
+add broadID to RTab
+
+design:
+
+add to rtab before issuing RREQ

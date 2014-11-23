@@ -8,7 +8,7 @@ void unpackAppData(char* data, char* IP, int* port, char* msg, int* flag);
 char* getVmIPByIndex(char* ip, const int index);
 int getLocalVmIndex();
 void getLocalVmIP(char* localIP);
-void getLocalVmMac(char* localMac);
+void getLocalVmMac(unsigned char* localMac);
 int getVmIndexByIP(const char *IP);
 void prtErr(const char* msg);
 void errExit(const char* msg);

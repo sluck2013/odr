@@ -4,7 +4,7 @@
 #define DEBUG
 //#define LDEBUG
 #define IP_LEN (16)
-#define MAC_LEN (18)
+#define MAC_LEN (6)
 #define VM_NUM (10)
 #define MAX_EPORT (65535)
 #define MIN_EPORT (64536)
@@ -21,7 +21,8 @@
 #define SERV_WK_PORT (39962)
 #define ODR_WK_PATH "109079356"
 #define ODR_WK_PORT (7935)
-#define ODR_BROADCAST_MAC "ff:ff:ff:ff:ff:ff"
+//#define ODR_BROADCAST_MAC "ff:ff:ff:ff:ff:ff"
+#define ODR_BROADCAST_MAC {0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
 #define PTAB_ENT_LIFETIME (3)
 
 #ifdef LDEBUG

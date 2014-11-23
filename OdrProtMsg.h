@@ -41,5 +41,6 @@ void makeRREP();
 void makeRREQ(RREQ_t *RREQ, const char* destIP, const unsigned long int broadID);
 void marshalRREQ(void* dest, const RREQ_t* RREQ);
 void unmarshalRREQ(RREQ_t* RREQ, const void* src);
+unsigned short int incHopCnt(RREQ_t* RREQ);
 
 #endif

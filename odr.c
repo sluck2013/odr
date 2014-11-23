@@ -14,8 +14,10 @@
 
 PTab_t *pPathTab;
 RTab_t *pRouteTab;
-unsigned long int ulBroadID = 0;
+unsigned long int ulBroadID;
 int iDomSock = 0, iRawSock = 0;
+IfInfo_t arrIfInfo[6];
+int iIfNum;
 
 int main(int argc, char** argv) {
     if (argc != 2) {
@@ -23,8 +25,16 @@ int main(int argc, char** argv) {
         sprintf(msg, "Usage: %s <staleness>", argv[0]);
         errExit(msg);
     }
+    iIfNum = getLocalIfInfo(arrIfInfo);
+    for (int i = 0; i < iIfNum; ++i) {
+        prtItemInt("interface index", arrIfInfo[i].index);
+        prtItemStr("interface name", arrIfInfo[i].name);
+        prtMac("interface mac", arrIfInfo[i].mac);
+        printf("\n");
+    }
 
     int iIsStale = 0; //TODO
+    ulBroadID = 0;
 
     // init path table
     pPathTab = createPathTable();
@@ -77,9 +87,7 @@ void onRawSockAvailable() {
     memcpy((void*)&iMsgType, buffer + ETH_DATA_OFFSET, sizeof(iMsgType));
     switch (iMsgType) {
         case 0:
-#ifdef DEBUG
-            printf("Received RREQ\n");
-#endif
+            ; // don't remove it
             RREQ_t RREQ;
             unmarshalRREQ(&RREQ, buffer + ETH_DATA_OFFSET);
             free(buffer);
@@ -111,93 +119,122 @@ void onDomSockAvailable(const int iIsStale) {
     printf("Received %d bytes from application.\n", n);
 #endif
     if (findPTabEntByPath(pPathTab, suSrcAddr.sun_path) == NULL) {
-        addToPathTable(pPathTab, getNewPTabPort(pPathTab), suSrcAddr.sun_path, PTAB_ENT_LIFETIME);
+        addToPathTable(pPathTab, getNewPTabPort(pPathTab), 
+                suSrcAddr.sun_path, PTAB_ENT_LIFETIME);
     }
     unpackAppData(pcReadBuf, destIP, &destPort, msg, &flag);
 #ifdef DEBUG
-    prtItemStr("destIP", destIP);
-    prtItemInt("destPort", destPort);
-    prtItemStr("msg", msg);
-    prtItemInt("flag", flag);
+    printf("dest: %s:%d  forceDiscover:%d\n\n", destIP, destPort, flag);
+    fflush(stdout);
 #endif
 
     RTabEnt_t *prEnt = getRTabEntByDest(pRouteTab, destIP);
     if (prEnt == NULL || flag || iIsStale) {
-        //send RREQ
+        //flood RREQ
         RREQ_t RREQ;
-        makeRREQ(&RREQ, destIP, ulBroadID++);
-        void* bufRREQ = malloc(RREQ_SIZE);
-        marshalRREQ(bufRREQ, &RREQ);
-        unsigned char localMac[MAC_LEN];
-        getLocalVmMac(localMac);
-#ifdef DEBUG
-        prtMac("local mac", localMac);
-#endif
-        //create socket
-        unsigned char destMac[MAC_LEN] = ODR_BROADCAST_MAC;
-        addToRTab(pRouteTab, RREQ.srcIP, localMac, ETH_IF_INDEX, 0);
-        sendRawFrame(iRawSock, destMac, localMac, bufRREQ);
-        free(bufRREQ);
+        makeRREQ(&RREQ, destIP, bid());
+        //add itself to rtab to avoid loopback
+        //last 3 params not in use
+        addToRTab(pRouteTab, RREQ.srcIP, arrIfInfo[0].mac, 0, 0);
+        floodRREQ(iRawSock, -1, &RREQ, 1);
     } else {//TODO
         //send DATA
     }
 }
 
 void onRecvRREQ(RREQ_t* pRREQ, const struct sockaddr_ll *srcAddr) {
+#ifdef DEBUG
+    prtMac("Received RREQ from", srcAddr->sll_addr);
+    prtItemInt("In ifIndex", srcAddr->sll_ifindex);
+    prtRREQ(pRREQ);
+    prtln();
+#endif
     // add "reverse" route to route table
     RTabEnt_t *ent = getRTabEntByDest(pRouteTab, pRREQ->srcIP);
     if (ent == NULL) {
         addToRTab(pRouteTab, pRREQ->srcIP, srcAddr->sll_addr, 
                 srcAddr->sll_ifindex, pRREQ->hopCnt + 1);
     } else {
-        if (pRREQ->hopCnt + 1 > ent->distToDest
-                && strcmp(srcAddr->sll_addr, ent->nextNode) == 0
-                && srcAddr->sll_ifindex == ent->outIfIndex ) {
+        if (!(pRREQ->hopCnt + 1 < ent->distToDest
+                || (pRREQ->hopCnt + 1 == ent->distToDest
+                    && memcmp(srcAddr->sll_addr, ent->nextNode, MAC_LEN) != 0
+                   )
+           )) {
             return;
         }
-        updateRTabEnt(ent, srcAddr->sll_addr, srcAddr->sll_ifindex, pRREQ->hopCnt + 1);
+        updateRTabEnt(ent, srcAddr->sll_addr, 
+                srcAddr->sll_ifindex, pRREQ->hopCnt + 1);
     }
 
 
     // relay RREQ or send back RREP
     char pcLocalIP[IP_LEN];
     getLocalVmIP(pcLocalIP);
-    if (memcmp(pcLocalIP, pRREQ->destIP, MAC_LEN) == 0) {
+    if (strcmp(pcLocalIP, pRREQ->destIP) == 0) {
+#ifdef DEBUG
+        prtMsg("Reached destination");
+#endif
         //RREP
         RREP_t RREP;
         makeRREP(&RREP, pRREQ, 0);
         void* bufRREP = malloc(RREP_SIZE);
         marshalRREP(bufRREP, &RREP);
         RTabEnt_t *ent = getRTabEntByDest(pRouteTab, RREP.srcIP);
-        unsigned char localMac[MAC_LEN];
-        getLocalVmMac(localMac);
-        sendRawFrame(iRawSock, ent->nextNode, localMac, bufRREP);
-    }
-    ent = getRTabEntByDest(pRouteTab, pRREQ->destIP);
-    if (ent == NULL) {
-        //relay RREQ
-        void* bufRREQ = malloc(RREQ_SIZE);
-        incHopCnt(pRREQ);
-        marshalRREQ(bufRREQ, pRREQ);
-        unsigned char localMac[MAC_LEN];
-        getLocalVmMac(localMac);
-        unsigned char destMac[MAC_LEN] = ODR_BROADCAST_MAC;
-        sendRawFrame(iRawSock, destMac, localMac, bufRREQ);
+        int ifidx = ent->outIfIndex;
+        int aridx = getArrIdxByIfIdx(ifidx);
+        sendRawFrame(iRawSock, ent->nextNode, arrIfInfo[aridx].mac, ifidx, bufRREP);
     } else {
-        //RREP
-        RREP_t RREP;
-        makeRREP(&RREP, pRREQ, ent->distToDest);
-        void* bufRREP = malloc(RREP_SIZE);
-        marshalRREP(bufRREP, &RREP);
-        RTabEnt_t *e = getRTabEntByDest(pRouteTab, RREP.srcIP);
-        unsigned char localMac[MAC_LEN];
-        getLocalVmMac(localMac);
-        sendRawFrame(iRawSock, e->nextNode, localMac, bufRREP);
+        ent = getRTabEntByDest(pRouteTab, pRREQ->destIP);
+        if (ent == NULL) {
+#ifdef DEBUG
+            prtMsg("Reached intermediate node");
+#endif
+            //relay RREQ
+            incHopCnt(pRREQ);
+            floodRREQ(iRawSock, srcAddr->sll_ifindex, pRREQ, 0);
+        } else {
+#ifdef DEBUG
+            prtMsg("Current node has destination routing info");
+#endif
+            //RREP
+            RREP_t RREP;
+            makeRREP(&RREP, pRREQ, ent->distToDest);
+            void* bufRREP = malloc(RREP_SIZE);
+            marshalRREP(bufRREP, &RREP);
+            RTabEnt_t *e = getRTabEntByDest(pRouteTab, RREP.srcIP);
+            int ifidx = e->outIfIndex;
+            int aridx = getArrIdxByIfIdx(ifidx);
+            //getLocalVmMac(localMac);
+            sendRawFrame(iRawSock, e->nextNode, arrIfInfo[aridx].mac, ifidx, bufRREP);
+            
+        }
+    }
+}
+
+void floodRREQ(const int iSockfd, const int incomeIfIdx, RREQ_t *pRREQ, const int isSrc) {
+    unsigned char destMac[MAC_LEN] = ODR_BROADCAST_MAC;
+    for (int i = 0; i < iIfNum; ++i) {
+        if (arrIfInfo[i].index == incomeIfIdx) {
+            continue;
+        }
+        if (isSrc) {
+            setBroadID(pRREQ, bid());
+        }
+        void* bufRREQ = malloc(RREQ_SIZE);
+        marshalRREQ(bufRREQ, pRREQ);
+        sendRawFrame(iSockfd, destMac, arrIfInfo[i].mac, arrIfInfo[i].index, bufRREQ);
+#ifdef DEBUG
+        prtMac("Sent RREQ to", destMac);
+        prtItemInt("Out ifIndex", arrIfInfo[i].index);
+        prtRREQ(pRREQ);
+        prtln();
+#endif
+        free(bufRREQ);
     }
 }
 
 int sendRawFrame(const int iSockfd, const unsigned char* destAddr, 
-        const unsigned char* srcAddr, const void* data) {
+        const unsigned char* srcAddr, const int ifIndex, const void* data) {
     struct sockaddr_ll sockAddr;
     void* buffer = malloc(ETH_FRAME_LEN);
     unsigned char* etherhead = buffer;
@@ -208,13 +245,12 @@ int sendRawFrame(const int iSockfd, const unsigned char* destAddr,
     memcpy(destMac, destAddr, MAC_LEN);
 #ifdef DEBUG
     prtMac("srcMac", srcMac);
-    prtMac("destMac", destMac);
 #endif
 
     /*prepare sockaddr_ll*/
     sockAddr.sll_family   = PF_PACKET;	
     sockAddr.sll_protocol = htons(ETH_PROT_VALUE);
-    sockAddr.sll_ifindex  = ETH_IF_INDEX;
+    sockAddr.sll_ifindex  = ifIndex;
     sockAddr.sll_hatype   = ARPHRD_ETHER;
     sockAddr.sll_pkttype  = PACKET_OTHERHOST;
     sockAddr.sll_halen    = ETH_ALEN;		
@@ -253,3 +289,15 @@ void setMacAddr(unsigned char* target, unsigned char* src) {
     target[5] = hexStr2UChar(&src[15]);
 }
 */
+int getArrIdxByIfIdx(const int ifIndex) {
+    for (int i = 0; i < iIfNum; ++i) {
+        if (arrIfInfo[i].index == ifIndex) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+unsigned long int bid() {
+    return ulBroadID++;
+}

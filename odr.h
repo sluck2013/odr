@@ -6,7 +6,10 @@
 void onRawSockAvailable();
 void onDomSockAvailable(const int iIsStale);
 void onRecvRREQ(RREQ_t* RREQ, const struct sockaddr_ll *srcAddr);
-int sendRawFrame(const int iSockfd, const unsigned char* destAddr, const unsigned char* srcAddr, const void* data);
+void floodRREQ(const int iSockfd, const int incomeIfIdx, RREQ_t *pRREQ, const int isSrc);
+int sendRawFrame(const int iSockfd, const unsigned char* destAddr, const unsigned char* srcAddr, const int ifIndex, const void* data);
+int getArrIdxByIfIdx(const int ifIndex);
+unsigned long int bid();
 //void setMacAddr(unsigned char* target, unsigned char* src);
 
 #endif

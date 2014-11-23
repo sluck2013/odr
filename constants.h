@@ -8,6 +8,7 @@
 #define VM_NUM (10)
 #define MAX_EPORT (65535)
 #define MIN_EPORT (64536)
+#define IF_NAME_LEN (10)
 
 #define ERR_CREATE_TEMP_SOCK_FILE "Create temp file failed!"
 #define ERR_PTAB_OVERFLOW "Too many entries in path table!"
@@ -24,14 +25,6 @@
 //#define ODR_BROADCAST_MAC "ff:ff:ff:ff:ff:ff"
 #define ODR_BROADCAST_MAC {0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
 #define PTAB_ENT_LIFETIME (3)
-
-#ifdef LDEBUG
-#define ODR_IF_NAME "wlan0"
-#define ETH_IF_INDEX (3)
-#else
-#define ODR_IF_NAME "eth0"
-#define ETH_IF_INDEX (2)
-#endif
 
 #define ETH_PROT_VALUE (10939)
 #define ETH_DATA_LEN (1496)

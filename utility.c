@@ -61,36 +61,34 @@ void getLocalVmIP(char* localIP) {
         struct sockaddr *sa = hwa->ip_addr;
         char* pcIfName = hwa->if_name;
         //get eth0 address
-        if (strcmp(pcIfName, ODR_IF_NAME) == 0) {
+        if (strcmp(pcIfName, "eth0") == 0) {
             strcpy(localIP, Sock_ntop_host(sa, sizeof(*sa)));
+            free_hwa_info(hwaHead);
             return;
         }
     }
     localIP[0] = '\0';
+    free_hwa_info(hwaHead);
 }
 
-void getLocalVmMac(unsigned char* localMac) {
+int getLocalIfInfo(IfInfo_t* localIf) {
     struct hwa_info *hwa, *hwaHead;
     hwa = hwaHead = Get_hw_addrs();
+    int ctr = 0;
     for (; hwa != NULL; hwa = hwa->hwa_next) {
         struct sockaddr *sa = hwa->ip_addr;
         char* pcIfName = hwa->if_name;
         //get eth0 address
-        if (strcmp(pcIfName, ODR_IF_NAME) == 0) {
-            /*
-            char* ptr = hwa->if_haddr;
-            int i = IF_HADDR;
-            char* wrPtr = localMac;
-            do {
-                sprintf(wrPtr, "%.2x%s", *ptr++ & 0xff, (i == 1) ? "" : ":");
-                wrPtr += 3;
-            } while (--i > 0);
-            */
-            memcpy(localMac, hwa->if_haddr, 6);
-            return;
+        if (strcmp(pcIfName, "eth0") != 0
+                && strcmp(pcIfName, "lo") != 0) {
+            (localIf + ctr)->index = hwa->if_index;
+            strcpy((localIf + ctr)->name, hwa->if_name);
+            memcpy((localIf + ctr)->mac, hwa->if_haddr, MAC_LEN);
+            ++ctr;
         }
     }
-    localMac[0] = '\0';
+    free_hwa_info(hwaHead);
+    return ctr;
 }
 
 int getVmIndexByIP(const char* IP) {
@@ -145,6 +143,10 @@ void prtMsg(const char *key) {
     fflush(stdout);
 }
 
+void prtln() {
+    printf("\n");
+    fflush(stdout);
+}
 #ifdef DEBUG
 void prtMac(const char* title, const unsigned char* mac) {
     printf("%s: ", title);

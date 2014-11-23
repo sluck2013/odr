@@ -80,7 +80,6 @@ void onRawSockAvailable() {
     int len = sizeof(srcAddr);
     void* buffer = malloc(ETH_FRAME_LEN);
     int n = recvfrom(iRawSock, buffer, ETH_FRAME_LEN, 0, (SA*)&srcAddr, &len);
-    printf("====INDEX====: %d\n", srcAddr.sll_ifindex);
     if (n < 0) {
         prtErr(ERR_RAW_RECV);
     }

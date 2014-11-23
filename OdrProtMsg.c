@@ -66,6 +66,7 @@ void makeRREP(RREP_t *RREP, const RREQ_t *RREQ, const unsigned short int hopCnt)
     strcpy(RREP->srcIP, RREQ->srcIP);
     strcpy(RREP->destIP, RREQ->destIP);
     RREP->hopCnt = hopCnt;
+    RREP->type = 1;
 }
 
 void marshalRREP(void* dest, const RREP_t* RREP) {

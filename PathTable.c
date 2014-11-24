@@ -50,6 +50,16 @@ PTabEnt_t *findPTabEntByPath(const PTab_t* pathTable, const char* sunPath) {
     return NULL;
 }
 
+PTabEnt_t *findPTabEntByPort(const PTab_t* pathTable, const unsigned int port) {
+    PTabEnt_t *p = pathTable->head;
+    while (p != NULL) {
+        if (p->port == port) {
+            return p;
+        }
+        p = p->next;
+    }
+}
+
 AvailPort_t *portList_pushBack(PortList_t* plist, const unsigned int port) {
     AvailPort_t *newElem = malloc(sizeof(*newElem));
     newElem->next = NULL;

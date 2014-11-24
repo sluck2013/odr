@@ -177,7 +177,6 @@ void onRecvRREQ(RREQ_t* pRREQ, const struct sockaddr_ll *srcAddr) {
                 srcAddr->sll_ifindex, pRREQ->hopCnt + 1);
     }
 
-
     // relay RREQ or send back RREP
     char pcLocalIP[IP_LEN];
     getLocalVmIP(pcLocalIP);
@@ -304,8 +303,20 @@ void onRecvAppMsg(AppMsg_t *appMsgRecv, const struct sockaddr_ll* srcAddr) {
     // relay or send to client/server
     char localIP[IP_LEN];
     getLocalVmIP(localIP);
-    if (strcmp(localIP, appMsgRecv->destIP)) {
+    if (strcmp(localIP, appMsgRecv->destIP) == 0) {
         //relay to client / server   
+        PTabEnt_t* pEnt = findPTabEntByPort(pPathTab, appMsgRecv->destPort);
+        if (pEnt == NULL) {
+            prtErr(ERR_GET_PATH_BY_PORT);
+        } else {
+            char data[MAXLINE];
+            packAppData(data, appMsgRecv->srcIP, appMsgRecv->srcPort, appMsgRecv->msg, 0); // last param not in use
+            struct sockaddr_un suAppAddr;
+            bzero(&suAppAddr, sizeof(suAppAddr));
+            suAppAddr.sun_family = AF_LOCAL;
+            strcpy(suAppAddr.sun_path, pEnt->sunPath);
+            Sendto(iDomSock, data, sizeof(data), 0, (SA*)&suAppAddr, sizeof(suAppAddr));
+        }
         return;
     }
 

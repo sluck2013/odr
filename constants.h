@@ -18,6 +18,7 @@
 #define ERR_SEND_RAW_DATA "Sending data via raw socket"
 #define ERR_CREATE_RAW_SOCK "Creating raw socket failed!"
 #define ERR_RAW_RECV "Receiving data via raw socket."
+#define ERR_GET_PATH_BY_PORT "No path corresponds to port"
 #define ERR_ROUTE_NOT_EXIST "route does not exist"
 
 #define SERV_WK_PATH "109399621"

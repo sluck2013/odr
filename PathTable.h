@@ -30,6 +30,7 @@ typedef struct PathTable {
 PTab_t *createPathTable(); 
 PTabEnt_t *addToPathTable(PTab_t* pathTable, const unsigned int port, const char* path, const unsigned int lifetime);
 PTabEnt_t *findPTabEntByPath(const PTab_t* pTable, const char* sunPath);
+PTabEnt_t *findPTabEntByPort(const PTab_t* pTable, const unsigned int port);
 AvailPort_t *portList_pushBack(PortList_t *plist, const unsigned int port);
 unsigned int getNewPTabPort(PTab_t* pathTable);
 

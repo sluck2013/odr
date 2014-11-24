@@ -55,7 +55,7 @@ int main(int argc, char** argv) {
             msg_send(iSockfd, destVmIP, destPort, msg, 0);
             printf("client at node vm %d sending request to server at vm %d\n", iLocalIndex, iVmNum);
 
-            //msg_recv(iSockfd, msg, destVmIP, &destPort);
+            msg_recv(iSockfd, msg, destVmIP, &destPort);
             printf("client at node vm %d received from vm %d %lu\n", iLocalIndex, getVmIndexByIP(destVmIP), time(NULL));
         }
     }

@@ -5,7 +5,7 @@
 #include "constants.h"
 
 void msg_send(int sockfd, char* destIP, int destPort, char* msg, int flag) {
-    char data[MAXLINE];
+    char data[APP_DATA_LEN];
     packAppData(data, destIP, destPort, msg, flag);
     struct sockaddr_un suRemoteAddr;
     bzero(&suRemoteAddr, sizeof(suRemoteAddr));
@@ -15,10 +15,10 @@ void msg_send(int sockfd, char* destIP, int destPort, char* msg, int flag) {
 }
 	
 void msg_recv(int sockfd, char* msgBuf, char* srcIP, int* srcPort) {
-    char data[MAXLINE];
+    char data[APP_DATA_LEN];
     struct sockaddr_un suSrcAddr;
     socklen_t len = sizeof(suSrcAddr);
-    int n = recvfrom(sockfd, data, MAXLINE, 0, (SA*)&suSrcAddr, &len);
+    int n = recvfrom(sockfd, data, APP_DATA_LEN, 0, (SA*)&suSrcAddr, &len);
     unpackAppData(data, srcIP, srcPort, msgBuf, NULL);
 }
 

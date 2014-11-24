@@ -4,7 +4,7 @@
 #include <linux/if_packet.h>
 
 void onRawSockAvailable();
-void onDomSockAvailable(const int iIsStale);
+void onDomSockAvailable();
 void onRecvRREQ(RREQ_t* RREQ, const struct sockaddr_ll *srcAddr);
 void onRecvRREP(RREP_t* RREP, const struct sockaddr_ll *srcAddr);
 void onRecvAppMsg(AppMsg_t* appMsg, const struct sockaddr_ll *srcAddr);

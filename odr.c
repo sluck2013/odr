@@ -14,7 +14,7 @@
 
 PTab_t *pPathTab;
 RTab_t *pRouteTab;
-unsigned long int ulBroadID;
+unsigned long int ulBroadID, staleness;
 int iDomSock = 0, iRawSock = 0;
 IfInfo_t arrIfInfo[6];
 int iIfNum;
@@ -22,20 +22,25 @@ AppMsg_t appMsgSend;
 
 int main(int argc, char** argv) {
     if (argc != 2) {
-        char msg[MAXLINE];
+        char msg[APP_DATA_LEN];
         sprintf(msg, "Usage: %s <staleness>", argv[0]);
         errExit(msg);
     }
     iIfNum = getLocalIfInfo(arrIfInfo);
+#ifdef DEBUG
     for (int i = 0; i < iIfNum; ++i) {
         prtItemInt("interface index", arrIfInfo[i].index);
         prtItemStr("interface name", arrIfInfo[i].name);
         prtMac("interface mac", arrIfInfo[i].mac);
         printf("\n");
     }
+#endif
 
-    int iIsStale = 0; //TODO
     ulBroadID = 0;
+    staleness = strtoul(argv[1], NULL, 10);
+#ifdef DEBUG
+    printf("staleness: %lu\n", staleness);
+#endif
 
     // init path table
     pPathTab = createPathTable();
@@ -67,7 +72,7 @@ int main(int argc, char** argv) {
         fsRSet = fsAllSet;
         select(iMaxFd + 1, &fsRSet, NULL, NULL, NULL); 
         if FD_ISSET(iDomSock, &fsRSet) {
-            onDomSockAvailable(iIsStale);
+            onDomSockAvailable();
         }
         if FD_ISSET(iRawSock, &fsRSet) {
             onRawSockAvailable();
@@ -113,7 +118,7 @@ void onRawSockAvailable() {
     }
 }
 
-void onDomSockAvailable(const int iIsStale) {
+void onDomSockAvailable() {
     char pcReadBuf[MAXLINE + 1];
     char destIP[IP_LEN], srcIP[IP_LEN];
     int srcPort, destPort;
@@ -142,8 +147,9 @@ void onDomSockAvailable(const int iIsStale) {
     fflush(stdout);
 #endif
 
+    deleteStaleRTabEnts(pRouteTab, staleness);
     RTabEnt_t *prEnt = getRTabEntByDest(pRouteTab, destIP);
-    if (prEnt == NULL || flag || iIsStale) {
+    if (prEnt == NULL || flag) {
         //flood RREQ
         RREQ_t RREQ;
         makeRREQ(&RREQ, destIP, bid());
@@ -166,6 +172,7 @@ void onRecvRREQ(RREQ_t* pRREQ, const struct sockaddr_ll *srcAddr) {
     prtln();
 #endif
     // add "reverse" route to route table
+    deleteStaleRTabEnts(pRouteTab, staleness);
     RTabEnt_t *ent = getRTabEntByDest(pRouteTab, pRREQ->srcIP);
     if (ent == NULL) {
         addToRTab(pRouteTab, pRREQ->srcIP, pucSrcMac, iInIndex, pRREQ->hopCnt + 1);

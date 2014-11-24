@@ -59,6 +59,54 @@ RTabEnt_t *addToRTab(RTab_t *table, const char* destIP,
     return newEnt;
 }
 
+void deleteRTabEnt(RTab_t* tbl, RTabEnt_t *ent) {
+#ifdef DEBUG
+    printf("Deleted routing table entry <%s>\n", ent->destIP);
+#endif
+    if (ent->prev != NULL) {
+        ent->prev->next = ent->next;
+    } else {
+        tbl->head = ent->next;
+    }
+
+    if (ent->next != NULL) {
+        ent->next->prev = ent->prev;
+    } else {
+        tbl->tail = ent->prev;
+    }
+    free(ent);
+}
+
+void clearRTab(RTab_t* tbl) {
+    RTabEnt_t *p;
+    while ((p = tbl->head) != NULL) {
+        deleteRTabEnt(tbl, p);
+    }
+}
+
+void deleteStaleRTabEnts(RTab_t *t, const unsigned long int staleness) {
+#ifdef DEBUG
+    prtMsg("Deleting stale routing table entries...");
+#endif
+    int ctr = 0;
+    RTabEnt_t *p = t->head;
+    while (p != NULL) {
+        RTabEnt_t *next = p->next;
+        if (isRTabEntStale(p, staleness)) {
+            deleteRTabEnt(t, p);
+            ++ctr;
+        }
+        p = next;
+    }
+#ifdef DEBUG
+    printf("%d stale entries deleted!\n", ctr);
+#endif
+}
+
+int isRTabEntStale(const RTabEnt_t* e, const unsigned long stale) {
+    return time(NULL) - e->lastUpdated > stale;
+}
+
 RTabEnt_t *updateRTabEnt(RTabEnt_t *ent, const unsigned char* nextNodeMac, 
         const int outIfIndex, const int distToDest) {
     if (strcmp(nextNodeMac, "") != 0) {

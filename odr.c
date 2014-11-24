@@ -449,11 +449,11 @@ int sendRawFrame(const int iSockfd, const unsigned char* destAddr,
         memcpy((void*)&msgType, data, 1);
         memcpy((void*)srcIP, data + 1, IP_LEN);
         memcpy((void*)destIP, data + 1 + IP_LEN, IP_LEN);
-        printf("ODR at node vm %d: sending frame hdr src vm %d  dest %s\n",
+        printf("ODR at node vm %d: sending frame hdr src vm %d  dest %s",
                 idx, idx, macToString(nextMac, destMac));
         printf("                           ODR msg type %u  src vm %d  dest vm %d\n",
                 msgType, getVmIndexByIP(srcIP), getVmIndexByIP(destIP));
-       prtln(); 
+        prtln();
     }
     return n;
 }

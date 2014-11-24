@@ -16,9 +16,9 @@
 #define ERR_PTAB_OVERFLOW "Too many entries in path table!"
 #define ERR_SELECT "select error"
 #define ERR_RECVFROM "recvfrom error"
-#define ERR_SEND_RAW_DATA "Sending data via raw socket"
+#define ERR_SEND_RAW_DATA "Sending data via raw socket error"
 #define ERR_CREATE_RAW_SOCK "Creating raw socket failed!"
-#define ERR_RAW_RECV "Receiving data via raw socket."
+#define ERR_RAW_RECV "Receiving data via raw socket error."
 #define ERR_GET_PATH_BY_PORT "No path corresponds to port"
 #define ERR_ROUTE_NOT_EXIST "route does not exist"
 

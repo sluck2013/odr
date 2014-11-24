@@ -11,6 +11,7 @@
 #define MIN_EPORT (64536)
 #define IF_NAME_LEN (10)
 #define APP_DATA_LEN (50)
+#define RECV_TIME_OUT (3)
 
 #define ERR_CREATE_TEMP_SOCK_FILE "Create temp file failed!"
 #define ERR_PTAB_OVERFLOW "Too many entries in path table!"

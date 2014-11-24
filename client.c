@@ -1,16 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "constants.h"
+#include "client.h"
 #include "utility.h"
 #include "unp.h"
 #include "time.h"
 #include "api.h"
 
 int main(int argc, char** argv) {
-    int iLocalIndex = getLocalVmIndex();
-#ifdef DEBUG
-    prtItemInt("local index", iLocalIndex);
-#endif
 
     // create domain datagram socket
 	int iSockfd;
@@ -43,21 +40,39 @@ int main(int argc, char** argv) {
             exit(0);
         } else if (iVmNum >= 1 && iVmNum <= 10) {
             printf("Your selection is VM %d\n", iVmNum);
-            char destVmIP[IP_LEN];
-            char msg[] = "1";
-            int destPort = SERV_WK_PORT;
-            getVmIPByIndex(destVmIP, iVmNum);
-#ifdef DEBUG
-            prtItemStr("Destination VM IP", destVmIP);
-#endif
-            //TODO: timeout 542 601
-            //try pselect and sigalarm
-            msg_send(iSockfd, destVmIP, destPort, msg, 1);
-            printf("client at node vm %d sending request to server at vm %d\n", iLocalIndex, iVmNum);
-
-            msg_recv(iSockfd, msg, destVmIP, &destPort);
-            printf("client at node vm %d received from vm %d %lu\n", iLocalIndex, getVmIndexByIP(destVmIP), time(NULL));
+            sendAndRecv(iSockfd, iVmNum);
         }
     }
 }
 
+void sendAndRecv(const int iSockfd, const int iVmNum) {
+    unsigned char flag = 0;
+    struct timeval tv;
+    fd_set fsRset, fsAllSet;
+    FD_ZERO(&fsAllSet);
+    FD_SET(iSockfd, &fsAllSet);
+    int iLocalIndex = getLocalVmIndex();
+    while (1) {
+        tv.tv_sec = RECV_TIME_OUT;
+        tv.tv_usec = 0;
+        char destVmIP[IP_LEN];
+        char msg[] = "1";
+        int destPort = SERV_WK_PORT;
+        getVmIPByIndex(destVmIP, iVmNum);
+#ifdef DEBUG
+        prtItemStr("Destination VM IP", destVmIP);
+#endif
+        msg_send(iSockfd, destVmIP, destPort, msg, 1);
+        printf("client at node vm %d sending request to server at vm %d\n", iLocalIndex, iVmNum);
+
+        fsRset = fsAllSet;
+        select(iSockfd + 1, &fsRset, NULL, NULL, &tv);
+        if (FD_ISSET(iSockfd, &fsRset)) {
+            msg_recv(iSockfd, msg, destVmIP, &destPort);
+        printf("client at node vm %d received from vm %d %lu\n", iLocalIndex, getVmIndexByIP(destVmIP), time(NULL));
+            return;
+        }
+        flag = 1;
+        prtMsg("Time out! Resending request...");
+    }
+}

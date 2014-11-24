@@ -18,7 +18,7 @@ PTab_t *createPathTable() {
     return p;
 }
 
-PTabEnt_t *addToPathTable(PTab_t* pathTable, const unsigned int port, const char* path, const unsigned int lifetime) {
+PTabEnt_t *addToPathTable(PTab_t* pathTable, const int port, const char* path, const unsigned int lifetime) {
     PTabEnt_t *p = malloc(sizeof(*p));
     p->createTime = time(NULL);
     p->lifetime = lifetime;
@@ -50,7 +50,7 @@ PTabEnt_t *findPTabEntByPath(const PTab_t* pathTable, const char* sunPath) {
     return NULL;
 }
 
-PTabEnt_t *findPTabEntByPort(const PTab_t* pathTable, const unsigned int port) {
+PTabEnt_t *findPTabEntByPort(const PTab_t* pathTable, const int port) {
     PTabEnt_t *p = pathTable->head;
     while (p != NULL) {
         if (p->port == port) {
@@ -60,7 +60,7 @@ PTabEnt_t *findPTabEntByPort(const PTab_t* pathTable, const unsigned int port) {
     }
 }
 
-AvailPort_t *portList_pushBack(PortList_t* plist, const unsigned int port) {
+AvailPort_t *portList_pushBack(PortList_t* plist, const int port) {
     AvailPort_t *newElem = malloc(sizeof(*newElem));
     newElem->next = NULL;
     newElem->prev = plist->tail;
@@ -76,11 +76,11 @@ AvailPort_t *portList_pushBack(PortList_t* plist, const unsigned int port) {
     return newElem;
 }
 
-unsigned int portList_popFront(PortList_t* plist) {
+int portList_popFront(PortList_t* plist) {
     if (plist->head == NULL) {
         return 0;
     }
-    unsigned int r = plist->head->port;
+    int r = plist->head->port;
     portList_remove(plist, plist->head);
     return r;
 }
@@ -105,7 +105,7 @@ int portList_isEmpty(PortList_t* plist) {
     return (plist->head == NULL);
 }
 
-unsigned int getNewPTabPort(PTab_t* pathTable) {
+int getNewPTabPort(PTab_t* pathTable) {
     PortList_t *pl = &pathTable->portList;
     if (portList_isEmpty(pl)) {
         prtErr(ERR_PTAB_OVERFLOW);

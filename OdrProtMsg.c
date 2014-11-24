@@ -92,7 +92,7 @@ unsigned short int incRREPHopCnt(RREP_t* RREP) {
     return ++RREP->hopCnt;
 }
 
-void makeAppMsg(AppMsg_t* appMsg, const unsigned short int srcPort, const unsigned short int destPort, const char* srcIP, const char* destIP, char* msg) {
+void makeAppMsg(AppMsg_t* appMsg, const int srcPort, const int destPort, const char* srcIP, const char* destIP, char* msg) {
     appMsg->type = 2;
     appMsg->srcPort = srcPort;
     appMsg->destPort = destPort;
@@ -105,25 +105,25 @@ void makeAppMsg(AppMsg_t* appMsg, const unsigned short int srcPort, const unsign
 void marshalAppMsg(void* dest, const AppMsg_t* appMsg) {
     memcpy(dest, (void*)&appMsg->type, sizeof(appMsg->type));
     memcpy(dest + 1, (void*)&appMsg->srcPort, sizeof(appMsg->srcPort));
-    memcpy(dest + 3, (void*)&appMsg->destPort, sizeof(appMsg->destPort));
-    memcpy(dest + 5, (void*)&appMsg->hopCnt, sizeof(appMsg->hopCnt));
-    memcpy(dest + 13, (void*)appMsg->srcIP, IP_LEN);
-    memcpy(dest + 13 + IP_LEN, (void*)appMsg->destIP, IP_LEN);
-    memcpy(dest + 13 + 2 * IP_LEN, (void*)appMsg->msg, MSG_LEN);
+    memcpy(dest + 5, (void*)&appMsg->destPort, sizeof(appMsg->destPort));
+    memcpy(dest + 9, (void*)&appMsg->hopCnt, sizeof(appMsg->hopCnt));
+    memcpy(dest + 11, (void*)appMsg->srcIP, IP_LEN);
+    memcpy(dest + 11 + IP_LEN, (void*)appMsg->destIP, IP_LEN);
+    memcpy(dest + 11 + 2 * IP_LEN, (void*)appMsg->msg, MSG_LEN);
 }
 
 void unmarshalAppMsg(AppMsg_t *appMsg, const void* src) {
     memcpy((void*)&appMsg->type, src, sizeof(appMsg->type));
     memcpy((void*)&appMsg->srcPort, src + 1, sizeof(appMsg->srcPort));
-    memcpy((void*)&appMsg->destPort, src + 3, sizeof(appMsg->destPort));
-    memcpy((void*)&appMsg->hopCnt, src + 5, sizeof(appMsg->hopCnt));
-    memcpy((void*)appMsg->srcIP, src + 13, IP_LEN);
-    memcpy((void*)appMsg->destIP, src + 13 + IP_LEN, IP_LEN);
-    memcpy((void*)appMsg->msg, src + 13 + 2 * IP_LEN, MSG_LEN);
+    memcpy((void*)&appMsg->destPort, src + 5, sizeof(appMsg->destPort));
+    memcpy((void*)&appMsg->hopCnt, src + 9, sizeof(appMsg->hopCnt));
+    memcpy((void*)appMsg->srcIP, src + 11, IP_LEN);
+    memcpy((void*)appMsg->destIP, src + 11 + IP_LEN, IP_LEN);
+    memcpy((void*)appMsg->msg, src + 11 + 2 * IP_LEN, MSG_LEN);
 }
 
 void prtAppMsg(const AppMsg_t* appMsg) {
-    printf("src: %s:%u, dest: %s:%u, hopCnt: %lu\n",
+    printf("src: %s:%d, dest: %s:%d, hopCnt: %u\n",
             appMsg->srcIP, appMsg->srcPort,
             appMsg->destIP, appMsg->destPort, appMsg->hopCnt);
 }

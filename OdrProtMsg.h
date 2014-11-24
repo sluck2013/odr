@@ -8,9 +8,9 @@
 //type 2
 typedef struct AppMsg {
 	unsigned char type;
-	unsigned short int srcPort;
-	unsigned short int destPort;
-	unsigned long int hopCnt;
+	int srcPort;
+	int destPort;
+	unsigned short int hopCnt;
 	char srcIP[IP_LEN];
 	char destIP[IP_LEN];
 	char msg[MSG_LEN];
@@ -52,7 +52,7 @@ void unmarshalRREP(RREP_t* RREP, const void* src);
 void prtRREP(const RREP_t *RREP);
 unsigned short int incRREPHopCnt(RREP_t* RREP);
 
-void makeAppMsg(AppMsg_t* appMsg, const unsigned short int srcPort, const unsigned short int destPort, const char* srcIP, const char* destIP, char* msg);
+void makeAppMsg(AppMsg_t* appMsg, const int srcPort, const int destPort, const char* srcIP, const char* destIP, char* msg);
 void marshalAppMsg(void* dest, const AppMsg_t* appMsg);
 void unmarshalAppMsg(AppMsg_t* appMsg, const void* src);
 void prtAppMsg(const AppMsg_t *appMsg);

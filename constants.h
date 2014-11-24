@@ -22,9 +22,9 @@
 #define ERR_GET_PATH_BY_PORT "No path corresponds to port"
 #define ERR_ROUTE_NOT_EXIST "route does not exist"
 
-#define SERV_WK_PATH "109399621"
+#define SERV_WK_PATH "odr399621"
 #define SERV_WK_PORT (39962)
-#define ODR_WK_PATH "109079356"
+#define ODR_WK_PATH "odr079356"
 #define ODR_WK_PORT (7935)
 //#define ODR_BROADCAST_MAC "ff:ff:ff:ff:ff:ff"
 #define ODR_BROADCAST_MAC {0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
@@ -34,8 +34,8 @@
 #define ETH_DATA_LEN (1496)
 #define ETH_DATA_OFFSET (14)
 
-#define RREQ_SIZE (8+2*IP_LEN)
-#define RREP_SIZE (4+2*IP_LEN)
-#define APPMSG_SIZE (13+2*IP_LEN+MSG_LEN)
+#define RREQ_SIZE (12+2*IP_LEN)
+#define RREP_SIZE (3+2*IP_LEN)
+#define APPMSG_SIZE (11+2*IP_LEN+MSG_LEN)
 
 #endif

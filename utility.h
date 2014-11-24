@@ -9,8 +9,8 @@ typedef struct IfInfo {
     unsigned char mac[MAC_LEN];
 } IfInfo_t;
 
-char* packAppData(char* data, const char* IP, const unsigned short int port, const char* msg, const unsigned char flag);
-void unpackAppData(char* data, char* IP, unsigned short int* port, char* msg, unsigned char* flag);
+char* packAppData(char* data, const char* IP, const int port, const char* msg, const unsigned char flag);
+void unpackAppData(char* data, char* IP, int* port, char* msg, unsigned char* flag);
 char* getVmIPByIndex(char* ip, const int index);
 int getLocalVmIndex();
 void getLocalVmIP(char* localIP);

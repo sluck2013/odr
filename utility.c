@@ -6,7 +6,7 @@
 #include "unp.h"
 #include "ctype.h"
 
-char* packAppData(char* data, const char* IP, const unsigned short int port, const char* msg, const unsigned char flag) {
+char* packAppData(char* data, const char* IP, const int port, const char* msg, const unsigned char flag) {
     data[0] = '\0';   
     char ch[] = "/";
     char buffer[20];
@@ -14,7 +14,7 @@ char* packAppData(char* data, const char* IP, const unsigned short int port, con
     strcat(data, IP);
     strcat(data, ch);    
 
-    sprintf(buffer, "%u", port);
+    sprintf(buffer, "%d", port);
     strcat(data, buffer);
     strcat(data, ch);
 
@@ -29,7 +29,7 @@ char* packAppData(char* data, const char* IP, const unsigned short int port, con
     return data;
 }
 
-void unpackAppData(char* data, char* IP, unsigned short int* port, char* msg, unsigned char* flag) {
+void unpackAppData(char* data, char* IP, int* port, char* msg, unsigned char* flag) {
     char ch[] = "/";
     strcpy(IP, strtok(data, ch));
     *port = atoi(strtok(NULL, ch));

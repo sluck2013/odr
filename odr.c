@@ -116,7 +116,7 @@ void onRawSockAvailable() {
 void onDomSockAvailable(const int iIsStale) {
     char pcReadBuf[MAXLINE + 1];
     char destIP[IP_LEN], srcIP[IP_LEN];
-    unsigned short int srcPort, destPort;
+    int srcPort, destPort;
     unsigned char flag;
     char msg[2];
     struct sockaddr_un suSrcAddr;
@@ -125,10 +125,13 @@ void onDomSockAvailable(const int iIsStale) {
 #ifdef DEBUG
     printf("Received %d bytes from application.\n", n);
 #endif
-    if (findPTabEntByPath(pPathTab, suSrcAddr.sun_path) == NULL) {
+    PTabEnt_t *pEnt = findPTabEntByPath(pPathTab, suSrcAddr.sun_path);
+    if (pEnt == NULL) {
         srcPort = getNewPTabPort(pPathTab);
         addToPathTable(pPathTab, srcPort, 
                 suSrcAddr.sun_path, PTAB_ENT_LIFETIME);
+    } else {
+        srcPort = pEnt->port;
     }
 
     getLocalVmIP(srcIP);

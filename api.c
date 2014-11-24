@@ -19,5 +19,6 @@ void msg_recv(int sockfd, char* msgBuf, char* srcIP, int* srcPort) {
     struct sockaddr_un suSrcAddr;
     socklen_t len = sizeof(suSrcAddr);
     int n = recvfrom(sockfd, data, MAXLINE, 0, (SA*)&suSrcAddr, &len);
+    unpackAppData(data, srcIP, srcPort, msgBuf, NULL);
 }
 

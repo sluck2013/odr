@@ -6,7 +6,7 @@
 #include "unp.h"
 #include "ctype.h"
 
-char* packAppData(char* data,const char* IP, const unsigned short int port, const char* msg, const unsigned char flag) {
+char* packAppData(char* data, const char* IP, const unsigned short int port, const char* msg, const unsigned char flag) {
     data[0] = '\0';   
     char ch[] = "/";
     char buffer[20];

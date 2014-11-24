@@ -11,7 +11,7 @@ void onRecvAppMsg(AppMsg_t* appMsg, const struct sockaddr_ll *srcAddr);
 void floodRREQ(const int iSockfd, const int incomeIfIdx, RREQ_t *pRREQ, const int isSrc);
 int sendRawFrame(const int iSockfd, const unsigned char* destAddr, const unsigned char* srcAddr, const int ifIndex, const void* data);
 int getArrIdxByIfIdx(const int ifIndex);
-unsigned long int bid();
+unsigned int bid();
 void sendAppMsg(const AppMsg_t *appMsg);
 
 #endif

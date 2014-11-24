@@ -147,6 +147,15 @@ void prtln() {
     printf("\n");
     fflush(stdout);
 }
+
+char* macToString(char* dest, const unsigned char* mac) {
+    for (int i = 0; i < 5; ++i) {
+        sprintf(dest + 3 * i, "%.2x:", mac[i]);
+    }
+    sprintf(dest + 15, "%.2x\n", mac[5]);
+    return dest;
+}
+
 #ifdef DEBUG
 void prtMac(const char* title, const unsigned char* mac) {
     printf("%s: ", title);

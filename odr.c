@@ -14,7 +14,8 @@
 
 PTab_t *pPathTab;
 RTab_t *pRouteTab;
-unsigned long int ulBroadID, staleness;
+unsigned int ulBroadID;
+unsigned long int staleness;
 int iDomSock = 0, iRawSock = 0;
 IfInfo_t arrIfInfo[6];
 int iIfNum;
@@ -435,11 +436,20 @@ int sendRawFrame(const int iSockfd, const unsigned char* destAddr,
             (SA*)&sockAddr, sizeof(sockAddr));
     if (n == -1) {
         prtErr(ERR_SEND_RAW_DATA);
+    } else {
+        int idx = getLocalVmIndex();
+        unsigned char msgType;
+        char srcIP[IP_LEN], destIP[IP_LEN];
+        char nextMac[20];
+        memcpy((void*)&msgType, data, 1);
+        memcpy((void*)srcIP, data + 1, IP_LEN);
+        memcpy((void*)destIP, data + 1 + IP_LEN, IP_LEN);
+        printf("ODR at node vm %d: sending frame hdr src vm %d  dest %s\n",
+                idx, idx, macToString(nextMac, destMac));
+        printf("                           ODR msg type %u  src vm %d  dest vm %d\n",
+                msgType, getVmIndexByIP(srcIP), getVmIndexByIP(destIP));
+       prtln(); 
     }
-#ifdef DEBUG
-//    printf("sent %d bytes.\n", n);
-//    fflush(stdout);
-#endif
     return n;
 }
 
@@ -461,6 +471,6 @@ int getArrIdxByIfIdx(const int ifIndex) {
     return -1;
 }
 
-unsigned long int bid() {
+unsigned int bid() {
     return ulBroadID++;
 }

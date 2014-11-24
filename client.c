@@ -69,10 +69,16 @@ void sendAndRecv(const int iSockfd, const int iVmNum) {
         select(iSockfd + 1, &fsRset, NULL, NULL, &tv);
         if (FD_ISSET(iSockfd, &fsRset)) {
             msg_recv(iSockfd, msg, destVmIP, &destPort);
-        printf("client at node vm %d received from vm %d %lu\n", iLocalIndex, getVmIndexByIP(destVmIP), time(NULL));
+        printf("client at node vm %d: received from vm %d %lu\n", iLocalIndex, getVmIndexByIP(destVmIP), time(NULL));
             return;
         }
-        flag = 1;
-        prtMsg("Time out! Resending request...");
+        printf("client at node vm %d: timeout on response from vm %d\n", iLocalIndex, getVmIndexByIP(destVmIP));
+
+        if (flag == 0) {
+            flag = 1;
+            prtMsg("Retransmitting request...");
+        } else {
+            return;
+        }
     }
 }

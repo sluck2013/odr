@@ -23,6 +23,7 @@ void prtItemStr(const char* key, const char* value);
 unsigned char hexStr2UChar(char const* str);
 void prtMsg(const char* msg);
 void prtln();
+char* macToString(char* dest, const unsigned char* mac);
 
 #ifdef DEBUG
 void prtMac(const char *title, const unsigned char* mac);

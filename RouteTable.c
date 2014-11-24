@@ -78,10 +78,16 @@ void deleteRTabEnt(RTab_t* tbl, RTabEnt_t *ent) {
 }
 
 void clearRTab(RTab_t* tbl) {
+#ifdef DEBUG
+    prtMsg("Clearing routing table...");
+#endif
     RTabEnt_t *p;
     while ((p = tbl->head) != NULL) {
         deleteRTabEnt(tbl, p);
     }
+#ifdef DEBUG
+    prtMsg("Finished!");
+#endif
 }
 
 void deleteStaleRTabEnts(RTab_t *t, const unsigned long int staleness) {

@@ -146,16 +146,18 @@ void onDomSockAvailable() {
     printf("dest: %s:%u  forceDiscover:%d\n\n", destIP, destPort, flag);
     fflush(stdout);
 #endif
-
+    if (flag) {
+        clearRTab(pRouteTab);
+    }
     deleteStaleRTabEnts(pRouteTab, staleness);
     RTabEnt_t *prEnt = getRTabEntByDest(pRouteTab, destIP);
-    if (prEnt == NULL || flag) {
+    if (prEnt == NULL) {
         //flood RREQ
         RREQ_t RREQ;
         makeRREQ(&RREQ, destIP, bid());
         //add itself to rtab to avoid loopback
         //last 3 params not in use
-        addToRTab(pRouteTab, RREQ.srcIP, arrIfInfo[0].mac, 0, 0);
+        //addToRTab(pRouteTab, RREQ.srcIP, arrIfInfo[0].mac, 0, 0);
         floodRREQ(iRawSock, -1, &RREQ, 1);
     } else {
         sendAppMsg(&appMsgSend);

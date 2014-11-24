@@ -77,6 +77,14 @@ void deleteRTabEnt(RTab_t* tbl, RTabEnt_t *ent) {
     free(ent);
 }
 
+void deleteRTabEntsToDest(RTab_t *tbl, const char* destIP) {
+    RTabEnt_t *e = getRTabEntByDest(tbl, destIP);
+    if (e == NULL ) {
+        return;
+    }
+    deleteRTabEnt(tbl, e);
+}
+
 void clearRTab(RTab_t* tbl) {
 #ifdef DEBUG
     prtMsg("Clearing routing table...");

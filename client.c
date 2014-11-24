@@ -52,7 +52,7 @@ int main(int argc, char** argv) {
 #endif
             //TODO: timeout 542 601
             //try pselect and sigalarm
-            msg_send(iSockfd, destVmIP, destPort, msg, 0);
+            msg_send(iSockfd, destVmIP, destPort, msg, 1);
             printf("client at node vm %d sending request to server at vm %d\n", iLocalIndex, iVmNum);
 
             msg_recv(iSockfd, msg, destVmIP, &destPort);

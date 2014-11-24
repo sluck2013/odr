@@ -147,14 +147,14 @@ void onDomSockAvailable() {
     fflush(stdout);
 #endif
     if (flag) {
-        clearRTab(pRouteTab);
+        deleteRTabEntsToDest(pRouteTab, destIP);
     }
     deleteStaleRTabEnts(pRouteTab, staleness);
     RTabEnt_t *prEnt = getRTabEntByDest(pRouteTab, destIP);
     if (prEnt == NULL) {
         //flood RREQ
         RREQ_t RREQ;
-        makeRREQ(&RREQ, destIP, bid());
+        makeRREQ(&RREQ, destIP, bid(), flag);
         //add itself to rtab to avoid loopback
         //last 3 params not in use
         //addToRTab(pRouteTab, RREQ.srcIP, arrIfInfo[0].mac, 0, 0);
@@ -174,6 +174,10 @@ void onRecvRREQ(RREQ_t* pRREQ, const struct sockaddr_ll *srcAddr) {
     prtln();
 #endif
     // add "reverse" route to route table
+    if (pRREQ->forceDisc) {
+        deleteRTabEntsToDest(pRouteTab, pRREQ->srcIP);
+        deleteRTabEntsToDest(pRouteTab, pRREQ->destIP);
+    }
     deleteStaleRTabEnts(pRouteTab, staleness);
     RTabEnt_t *ent = getRTabEntByDest(pRouteTab, pRREQ->srcIP);
     if (ent == NULL) {
@@ -258,6 +262,9 @@ void onRecvRREQ(RREQ_t* pRREQ, const struct sockaddr_ll *srcAddr) {
 void onRecvRREP(RREP_t* pRREP, const struct sockaddr_ll *incomingAddr) {
     const int iInIndex = incomingAddr->sll_ifindex;
     const unsigned char* pucSrcMac = incomingAddr->sll_addr;
+    if (pRREP->forceDisc) {
+        deleteRTabEntsToDest(pRouteTab, pRREP->destIP);
+    }
     RTabEnt_t* ent = getRTabEntByDest(pRouteTab, pRREP->destIP);
     if (ent == NULL) {
         addToRTab(pRouteTab, pRREP->destIP, pucSrcMac, iInIndex, pRREP->hopCnt + 1);

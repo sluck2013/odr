@@ -21,15 +21,18 @@ typedef struct AppMsg {
 typedef struct RREQ {
     unsigned char type;
     unsigned char isResponsed;
+    unsigned char forceDisc;
 	unsigned long int broadID;
 	unsigned short int hopCnt;
 	char srcIP[IP_LEN];
 	char destIP[IP_LEN];
+
 } RREQ_t;
 
 //type 1
 typedef struct RREP {
     unsigned char type;
+    unsigned char forceDisc;
 	unsigned short int hopCnt;
 	char srcIP[IP_LEN];
 	char destIP[IP_LEN];
@@ -37,7 +40,7 @@ typedef struct RREP {
 } RREP_t;
 
 
-void makeRREQ(RREQ_t *RREQ, const char* destIP, const unsigned long int broadID);
+void makeRREQ(RREQ_t *RREQ, const char* destIP, const unsigned long int broadID, const unsigned char forceDiscovery);
 void marshalRREQ(void* dest, const RREQ_t* RREQ);
 void unmarshalRREQ(RREQ_t* RREQ, const void* src);
 unsigned short int incRREQHopCnt(RREQ_t* RREQ);

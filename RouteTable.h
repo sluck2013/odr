@@ -32,5 +32,6 @@ RTabEnt_t *updateRTabEnt(RTabEnt_t *ent, const unsigned char *nextNodeMac, const
 void deleteRTabEnt(RTab_t* tbl, RTabEnt_t *ent);
 RTabEnt_t *confirmRTabEnt(RTabEnt_t *ent);
 void deleteStaleRTabEnts(RTab_t *t, const unsigned long int staleness);
+void deleteRTabEntsToDest(RTab_t *tbl, const char* destIP);
 
 #endif

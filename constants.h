@@ -34,8 +34,8 @@
 #define ETH_DATA_LEN (1496)
 #define ETH_DATA_OFFSET (14)
 
-#define RREQ_SIZE (12+2*IP_LEN)
-#define RREP_SIZE (3+2*IP_LEN)
+#define RREQ_SIZE (13+2*IP_LEN)
+#define RREP_SIZE (4+2*IP_LEN)
 #define APPMSG_SIZE (11+2*IP_LEN+MSG_LEN)
 
 #endif

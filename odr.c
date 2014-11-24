@@ -442,6 +442,7 @@ int sendRawFrame(const int iSockfd, const unsigned char* destAddr,
     if (n == -1) {
         prtErr(ERR_SEND_RAW_DATA);
     } else {
+#ifdef RELEASE
         int idx = getLocalVmIndex();
         unsigned char msgType;
         char srcIP[IP_LEN], destIP[IP_LEN];
@@ -454,6 +455,7 @@ int sendRawFrame(const int iSockfd, const unsigned char* destAddr,
         printf("                           ODR msg type %u  src vm %d  dest vm %d\n",
                 msgType, getVmIndexByIP(srcIP), getVmIndexByIP(destIP));
         prtln();
+#endif
     }
     return n;
 }

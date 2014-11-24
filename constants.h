@@ -2,6 +2,7 @@
 #define CONSTANTS_H
 
 //#define DEBUG
+#define RELEASE
 #define IP_LEN (18)
 #define MAC_LEN (6)
 #define MSG_LEN (2)
@@ -10,7 +11,7 @@
 #define MIN_EPORT (64536)
 #define IF_NAME_LEN (10)
 #define APP_DATA_LEN (50)
-#define RECV_TIME_OUT (3)
+#define RECV_TIME_OUT (15)
 
 #define ERR_CREATE_TEMP_SOCK_FILE "Create temp file failed!"
 #define ERR_PTAB_OVERFLOW "Too many entries in path table!"
@@ -22,9 +23,9 @@
 #define ERR_GET_PATH_BY_PORT "No path corresponds to port"
 #define ERR_ROUTE_NOT_EXIST "route does not exist"
 
-#define SERV_WK_PATH "odr399621"
+#define SERV_WK_PATH "/tmp/odr399621"
 #define SERV_WK_PORT (39962)
-#define ODR_WK_PATH "odr079356"
+#define ODR_WK_PATH "/tmp/odr079356"
 #define ODR_WK_PORT (7935)
 #define ODR_BROADCAST_MAC {0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
 #define PTAB_ENT_LIFETIME (3)

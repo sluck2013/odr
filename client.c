@@ -14,7 +14,7 @@ int main(int argc, char** argv) {
 	struct sockaddr_un suCliaddr, suServaddr;
 
 	iSockfd = Socket(AF_LOCAL, SOCK_DGRAM, 0);
-	char pcFile[] = "109399621.XXXXXX";
+	char pcFile[] = "/tmp/109399621.XXXXXX";
 
 	// create temp file
 	int iTmpFile = mkstemp(pcFile);

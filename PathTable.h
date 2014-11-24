@@ -33,11 +33,13 @@ PTabEnt_t *findPTabEntByPath(const PTab_t* pTable, const char* sunPath);
 PTabEnt_t *findPTabEntByPort(const PTab_t* pTable, const int port);
 AvailPort_t *portList_pushBack(PortList_t *plist, const int port);
 int getNewPTabPort(PTab_t* pathTable);
+void deletePTabEnt(PTab_t* t, PTabEnt_t* e);
+void deleteExpiredPTabEnts(PTab_t* t);
 
-AvailPort_t *portList_pushBack(PortList_t* plist, const int port);
 int portList_popFront(PortList_t* plist);
 void portList_remove(PortList_t* plist, AvailPort_t *target);
 int portList_isEmpty(PortList_t* plist);
+void confirmPTabEnt(PTabEnt_t* e);
 
 #ifdef DEBUG
 void prtPortList(const PTab_t* pathTable);

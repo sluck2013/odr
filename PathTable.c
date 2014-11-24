@@ -60,6 +60,57 @@ PTabEnt_t *findPTabEntByPort(const PTab_t* pathTable, const int port) {
     }
 }
 
+void deletePTabEnt(PTab_t* t, PTabEnt_t* e) {
+#ifdef DEBUG
+    printf("Deleted <port-path> entry <%d, %s>\n", e->port, e->sunPath);
+#endif
+    int port = e->port;
+    if (e->prev != NULL) {
+        e->prev->next = e->next;
+    } else {
+        t->head = e->next;
+    }
+
+    if (e->next != NULL) {
+        e->next->prev = e->prev;
+    } else {
+        t->tail = e->prev;
+    }
+    free(e);
+
+    portList_pushBack(&t->portList, port);
+}
+
+void confirmPTabEnt(PTabEnt_t* e) {
+    e->createTime = time(NULL);
+#ifdef DEBUG
+    printf("<port-path> entry <%d, %s> confirmed at time %lu\n",
+            e->port, e->sunPath, e->createTime);
+#endif
+}
+
+int isPTabEntExpired(const PTabEnt_t* e) {
+    if (e->lifetime == 0) {
+        return 0;
+    } else {
+        return time(NULL) - e->createTime > e->lifetime;
+    }
+}
+
+void deleteExpiredPTabEnts(PTab_t* t) {
+#ifdef DEBUG
+    prtMsg("Deleting expired <port-path> entries");
+#endif
+    PTabEnt_t *p = t->head;
+    while (p != NULL) {
+        PTabEnt_t *next = p->next;
+        if (isPTabEntExpired(p)) {
+            deletePTabEnt(t, p);
+        }
+        p = next;
+    }
+}
+
 AvailPort_t *portList_pushBack(PortList_t* plist, const int port) {
     AvailPort_t *newElem = malloc(sizeof(*newElem));
     newElem->next = NULL;

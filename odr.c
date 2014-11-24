@@ -131,6 +131,8 @@ void onDomSockAvailable() {
 #ifdef DEBUG
     printf("Received %d bytes from application.\n", n);
 #endif
+    
+    deleteExpiredPTabEnts(pPathTab);
     PTabEnt_t *pEnt = findPTabEntByPath(pPathTab, suSrcAddr.sun_path);
     if (pEnt == NULL) {
         srcPort = getNewPTabPort(pPathTab);
@@ -138,6 +140,7 @@ void onDomSockAvailable() {
                 suSrcAddr.sun_path, PTAB_ENT_LIFETIME);
     } else {
         srcPort = pEnt->port;
+        confirmPTabEnt(pEnt);
     }
 
     getLocalVmIP(srcIP);
@@ -307,9 +310,9 @@ void onRecvRREP(RREP_t* pRREP, const struct sockaddr_ll *incomingAddr) {
 }
 
 void onRecvAppMsg(AppMsg_t *appMsgRecv, const struct sockaddr_ll* srcAddr) {
-#ifdef DEBUG
     const int iInIndex = srcAddr->sll_ifindex;
     const unsigned char* pucSrcMac = srcAddr->sll_addr;
+#ifdef DEBUG
     printf("Received app payload:\n");
     prtAppMsg(appMsgRecv);
     prtMac("from", pucSrcMac);
@@ -336,10 +339,12 @@ void onRecvAppMsg(AppMsg_t *appMsgRecv, const struct sockaddr_ll* srcAddr) {
     getLocalVmIP(localIP);
     if (strcmp(localIP, appMsgRecv->destIP) == 0) {
         //relay to client / server   
+        deleteExpiredPTabEnts(pPathTab);
         PTabEnt_t* pEnt = findPTabEntByPort(pPathTab, appMsgRecv->destPort);
         if (pEnt == NULL) {
             prtErr(ERR_GET_PATH_BY_PORT);
         } else {
+            confirmPTabEnt(pEnt);
             char data[MAXLINE];
             packAppData(data, appMsgRecv->srcIP, appMsgRecv->srcPort, appMsgRecv->msg, 0); // last param not in use
             struct sockaddr_un suAppAddr;

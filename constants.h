@@ -1,8 +1,7 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
-#define DEBUG
-//#define LDEBUG
+//#define DEBUG
 #define IP_LEN (18)
 #define MAC_LEN (6)
 #define MSG_LEN (2)
@@ -27,7 +26,6 @@
 #define SERV_WK_PORT (39962)
 #define ODR_WK_PATH "odr079356"
 #define ODR_WK_PORT (7935)
-//#define ODR_BROADCAST_MAC "ff:ff:ff:ff:ff:ff"
 #define ODR_BROADCAST_MAC {0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
 #define PTAB_ENT_LIFETIME (3)
 

@@ -125,7 +125,6 @@ RTabEnt_t *updateRTabEnt(RTabEnt_t *ent, const unsigned char* nextNodeMac,
         const int outIfIndex, const int distToDest) {
     if (strcmp(nextNodeMac, "") != 0) {
         memcpy(ent->nextNode, nextNodeMac, MAC_LEN);
-        prtMac("next node", nextNodeMac);
     }
     if (outIfIndex >= 0) {
         ent->outIfIndex = outIfIndex;

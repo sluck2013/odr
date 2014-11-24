@@ -18,6 +18,7 @@ unsigned long int ulBroadID;
 int iDomSock = 0, iRawSock = 0;
 IfInfo_t arrIfInfo[6];
 int iIfNum;
+AppMsg_t appMsgSend;
 
 int main(int argc, char** argv) {
     if (argc != 2) {
@@ -101,8 +102,11 @@ void onRawSockAvailable() {
             onRecvRREP(&RREP, &srcAddr);
             break;
         case 2:
-#ifdef DEBUG
-#endif
+            ; // don't remove it
+            AppMsg_t appMsgRecv;
+            unmarshalAppMsg(&appMsgRecv, buffer + ETH_DATA_OFFSET);
+            free(buffer);
+            onRecvAppMsg(&appMsgRecv, &srcAddr);
             break;
         default:
             break;
@@ -111,8 +115,9 @@ void onRawSockAvailable() {
 
 void onDomSockAvailable(const int iIsStale) {
     char pcReadBuf[MAXLINE + 1];
-    char destIP[IP_LEN];
-    int destPort, flag;
+    char destIP[IP_LEN], srcIP[IP_LEN];
+    unsigned short int srcPort, destPort;
+    unsigned char flag;
     char msg[2];
     struct sockaddr_un suSrcAddr;
     socklen_t len = sizeof(suSrcAddr);
@@ -121,12 +126,16 @@ void onDomSockAvailable(const int iIsStale) {
     printf("Received %d bytes from application.\n", n);
 #endif
     if (findPTabEntByPath(pPathTab, suSrcAddr.sun_path) == NULL) {
-        addToPathTable(pPathTab, getNewPTabPort(pPathTab), 
+        srcPort = getNewPTabPort(pPathTab);
+        addToPathTable(pPathTab, srcPort, 
                 suSrcAddr.sun_path, PTAB_ENT_LIFETIME);
     }
+
+    getLocalVmIP(srcIP);
     unpackAppData(pcReadBuf, destIP, &destPort, msg, &flag);
+    makeAppMsg(&appMsgSend, srcPort, destPort, srcIP, destIP, msg);
 #ifdef DEBUG
-    printf("dest: %s:%d  forceDiscover:%d\n\n", destIP, destPort, flag);
+    printf("dest: %s:%u  forceDiscover:%d\n\n", destIP, destPort, flag);
     fflush(stdout);
 #endif
 
@@ -139,8 +148,8 @@ void onDomSockAvailable(const int iIsStale) {
         //last 3 params not in use
         addToRTab(pRouteTab, RREQ.srcIP, arrIfInfo[0].mac, 0, 0);
         floodRREQ(iRawSock, -1, &RREQ, 1);
-    } else {//TODO
-        //send DATA
+    } else {
+        sendAppMsg(&appMsgSend);
     }
 }
 
@@ -250,7 +259,7 @@ void onRecvRREP(RREP_t* pRREP, const struct sockaddr_ll *incomingAddr) {
 #ifdef DEBUG
         prtMsg("RREP reached src node");
 #endif
-        
+        sendAppMsg(&appMsgSend);
     } else {
 #ifdef DEBUG
         prtMsg("RREP reached intermediate node");
@@ -270,6 +279,39 @@ void onRecvRREP(RREP_t* pRREP, const struct sockaddr_ll *incomingAddr) {
         prtln();
 #endif
     }
+}
+
+void onRecvAppMsg(AppMsg_t *appMsgRecv, const struct sockaddr_ll* srcAddr) {
+#ifdef DEBUG
+    printf("Received app payload:\n");
+    prtAppMsg(appMsgRecv);
+    prtMac("from", srcAddr->sll_addr);
+    prtItemInt("Incoming interface index", srcAddr->sll_ifindex);
+    prtln();
+#endif
+    // update / confirm routing table
+    RTabEnt_t *eSrc = getRTabEntByDest(pRouteTab, appMsgRecv->srcIP);
+    if (eSrc == NULL) {
+        addToRTab(pRouteTab, appMsgRecv->srcIP, srcAddr->sll_addr, srcAddr->sll_ifindex, appMsgRecv->hopCnt + 1);
+    } else {
+        if (appMsgRecv->hopCnt + 1 < eSrc->distToDest) {
+            updateRTabEnt(eSrc, srcAddr->sll_addr, srcAddr->sll_ifindex, appMsgRecv->hopCnt + 1);
+        } else {
+            //confirm
+        }
+    }
+
+    // relay or send to client/server
+    char localIP[IP_LEN];
+    getLocalVmIP(localIP);
+    if (strcmp(localIP, appMsgRecv->destIP)) {
+        //relay to client / server   
+        return;
+    }
+
+    RTabEnt_t *eDest = getRTabEntByDest(pRouteTab, appMsgRecv->destIP);
+    incAppMsgHopCnt(appMsgRecv);
+    sendAppMsg(appMsgRecv);
 }
 
 void floodRREQ(const int iSockfd, const int incomeIfIdx, RREQ_t *pRREQ, const int isSrc) {
@@ -292,6 +334,25 @@ void floodRREQ(const int iSockfd, const int incomeIfIdx, RREQ_t *pRREQ, const in
 #endif
         free(bufRREQ);
     }
+}
+
+void sendAppMsg(const AppMsg_t *appMsg) {
+    void *buffer = malloc(APPMSG_SIZE);
+    marshalAppMsg(buffer, appMsg);
+    RTabEnt_t *ent = getRTabEntByDest(pRouteTab, appMsg->destIP);
+    if (ent == NULL) {
+        prtErr(ERR_ROUTE_NOT_EXIST);
+    }
+    int outIdx = ent->outIfIndex;
+    int arrIdx = getArrIdxByIfIdx(outIdx);
+    sendRawFrame(iRawSock, ent->nextNode, arrIfInfo[arrIdx].mac, outIdx, buffer);
+    free(buffer);
+#ifdef DEBUG
+    prtMac("Sent app payload to", ent->nextNode);
+    prtItemInt("out interface index", outIdx);
+    prtAppMsg(appMsg);
+    prtln();
+#endif
 }
 
 int sendRawFrame(const int iSockfd, const unsigned char* destAddr, 

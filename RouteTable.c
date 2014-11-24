@@ -80,3 +80,20 @@ RTabEnt_t *updateRTabEnt(RTabEnt_t *ent, const unsigned char* nextNodeMac,
     return ent;
 }
 
+int isRTabEntEqual(const RTabEnt_t *ent, const unsigned char* nextNode, 
+        const int outIfIndex, const int distToDest) {
+    //destIP should already be same
+    return (memcmp(nextNode, ent->nextNode, MAC_LEN) == 0
+            && ent->outIfIndex == outIfIndex
+            && ent->distToDest == distToDest
+           );
+}
+
+RTabEnt_t *confirmRTabEnt(RTabEnt_t *ent) {
+    ent->lastUpdated = time(NULL);
+#ifdef DEBUG
+    printf("Routing table entry <%s> confirmed with new time %lu\n", 
+            ent->destIP, ent->lastUpdated);
+#endif
+    return ent;
+}

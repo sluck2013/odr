@@ -154,27 +154,30 @@ void onDomSockAvailable(const int iIsStale) {
 }
 
 void onRecvRREQ(RREQ_t* pRREQ, const struct sockaddr_ll *srcAddr) {
+    const int iInIndex = srcAddr->sll_ifindex;
+    const unsigned char* pucSrcMac = srcAddr->sll_addr;
 #ifdef DEBUG
-    prtMac("Received RREQ from", srcAddr->sll_addr);
-    prtItemInt("Incoming ifIndex", srcAddr->sll_ifindex);
+    prtMac("Received RREQ from", pucSrcMac);
+    prtItemInt("Incoming ifIndex", iInIndex);
     prtRREQ(pRREQ);
     prtln();
 #endif
     // add "reverse" route to route table
     RTabEnt_t *ent = getRTabEntByDest(pRouteTab, pRREQ->srcIP);
     if (ent == NULL) {
-        addToRTab(pRouteTab, pRREQ->srcIP, srcAddr->sll_addr, 
-                srcAddr->sll_ifindex, pRREQ->hopCnt + 1);
+        addToRTab(pRouteTab, pRREQ->srcIP, pucSrcMac, iInIndex, pRREQ->hopCnt + 1);
     } else {
-        if (!(pRREQ->hopCnt + 1 < ent->distToDest
+        if (isRTabEntEqual(ent, pucSrcMac, iInIndex, pRREQ->hopCnt + 1)) {
+            confirmRTabEnt(ent);
+        } else if (pRREQ->hopCnt + 1 < ent->distToDest
                 || (pRREQ->hopCnt + 1 == ent->distToDest
-                    && memcmp(srcAddr->sll_addr, ent->nextNode, MAC_LEN) != 0
+                    && memcmp(pucSrcMac, ent->nextNode, MAC_LEN) != 0
                    )
-           )) {
+                ) {
+            updateRTabEnt(ent, pucSrcMac, iInIndex, pRREQ->hopCnt + 1);
+        } else {
             return;
         }
-        updateRTabEnt(ent, srcAddr->sll_addr, 
-                srcAddr->sll_ifindex, pRREQ->hopCnt + 1);
     }
 
     // relay RREQ or send back RREP
@@ -210,7 +213,7 @@ void onRecvRREQ(RREQ_t* pRREQ, const struct sockaddr_ll *srcAddr) {
 #endif
             //relay RREQ
             incRREQHopCnt(pRREQ);
-            floodRREQ(iRawSock, srcAddr->sll_ifindex, pRREQ, 0);
+            floodRREQ(iRawSock, iInIndex, pRREQ, 0);
         } else {
 #ifdef DEBUG
             prtMsg("Current node has destination routing info");
@@ -234,19 +237,22 @@ void onRecvRREQ(RREQ_t* pRREQ, const struct sockaddr_ll *srcAddr) {
                 setRespBit(pRREQ);
             }
             incRREQHopCnt(pRREQ);
-            floodRREQ(iRawSock, srcAddr->sll_ifindex, pRREQ, 0);
+            floodRREQ(iRawSock, iInIndex, pRREQ, 0);
             
         }
     }
 }
 
 void onRecvRREP(RREP_t* pRREP, const struct sockaddr_ll *incomingAddr) {
+    const int iInIndex = incomingAddr->sll_ifindex;
+    const unsigned char* pucSrcMac = incomingAddr->sll_addr;
     RTabEnt_t* ent = getRTabEntByDest(pRouteTab, pRREP->destIP);
     if (ent == NULL) {
-        addToRTab(pRouteTab, pRREP->destIP, incomingAddr->sll_addr, incomingAddr->sll_ifindex, pRREP->hopCnt + 1);
+        addToRTab(pRouteTab, pRREP->destIP, pucSrcMac, iInIndex, pRREP->hopCnt + 1);
     } else {
-        if (pRREP->hopCnt + 1 < ent->distToDest) {
-            updateRTabEnt(ent, incomingAddr->sll_addr, incomingAddr->sll_ifindex, pRREP->hopCnt + 1);
+        if (isRTabEntEqual(ent, pucSrcMac, iInIndex, pRREP->hopCnt + 1)) {
+        } else if (pRREP->hopCnt + 1 < ent->distToDest) {
+            updateRTabEnt(ent, pucSrcMac, iInIndex, pRREP->hopCnt + 1);
         } else {
             return;
         }
@@ -282,21 +288,26 @@ void onRecvRREP(RREP_t* pRREP, const struct sockaddr_ll *incomingAddr) {
 
 void onRecvAppMsg(AppMsg_t *appMsgRecv, const struct sockaddr_ll* srcAddr) {
 #ifdef DEBUG
+    const int iInIndex = srcAddr->sll_ifindex;
+    const unsigned char* pucSrcMac = srcAddr->sll_addr;
     printf("Received app payload:\n");
     prtAppMsg(appMsgRecv);
-    prtMac("from", srcAddr->sll_addr);
-    prtItemInt("Incoming interface index", srcAddr->sll_ifindex);
+    prtMac("from", pucSrcMac);
+    prtItemInt("Incoming interface index", iInIndex);
     prtln();
 #endif
     // update / confirm routing table
     RTabEnt_t *eSrc = getRTabEntByDest(pRouteTab, appMsgRecv->srcIP);
     if (eSrc == NULL) {
-        addToRTab(pRouteTab, appMsgRecv->srcIP, srcAddr->sll_addr, srcAddr->sll_ifindex, appMsgRecv->hopCnt + 1);
+        addToRTab(pRouteTab, appMsgRecv->srcIP, pucSrcMac, 
+                iInIndex, appMsgRecv->hopCnt + 1);
     } else {
         if (appMsgRecv->hopCnt + 1 < eSrc->distToDest) {
-            updateRTabEnt(eSrc, srcAddr->sll_addr, srcAddr->sll_ifindex, appMsgRecv->hopCnt + 1);
-        } else {
-            //confirm
+            updateRTabEnt(eSrc, pucSrcMac, 
+                    iInIndex, appMsgRecv->hopCnt + 1);
+        } else if (isRTabEntEqual(eSrc, pucSrcMac,
+                    iInIndex, appMsgRecv->hopCnt + 1)) {
+            confirmRTabEnt(eSrc);
         }
     }
 

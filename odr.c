@@ -12,14 +12,14 @@
 #include <linux/if_ether.h>
 #include <linux/if_arp.h>
 
-PTab_t *pPathTab;
-RTab_t *pRouteTab;
-unsigned int ulBroadID;
-unsigned long int staleness;
-int iDomSock = 0, iRawSock = 0;
-IfInfo_t arrIfInfo[6];
-int iIfNum;
-AppMsg_t appMsgSend;
+PTab_t *pPathTab;                 // ptr to path table
+RTab_t *pRouteTab;                // ptr to routing table
+unsigned int ulBroadID;           // broad ID
+unsigned long int staleness;      // staleness
+int iDomSock = 0, iRawSock = 0;   // Unix domain socket & ethernet raw socket
+IfInfo_t arrIfInfo[6];            // local interface info array except eth0 & lo
+int iIfNum;                       // acutual number of elements in arrIfiInfo
+AppMsg_t appMsgSend;              // payload to be sent
 
 int main(int argc, char** argv) {
     if (argc != 2) {
@@ -29,12 +29,14 @@ int main(int argc, char** argv) {
     }
     iIfNum = getLocalIfInfo(arrIfInfo);
 #ifdef DEBUG
+    prtMsg("==========================================");
     for (int i = 0; i < iIfNum; ++i) {
         prtItemInt("interface index", arrIfInfo[i].index);
         prtItemStr("interface name", arrIfInfo[i].name);
         prtMac("interface mac", arrIfInfo[i].mac);
-        printf("\n");
+        println();
     }
+    prtMsg("==========================================");
 #endif
 
     ulBroadID = 0;
@@ -82,6 +84,9 @@ int main(int argc, char** argv) {
     unlink(ODR_WK_PATH);
 }
 
+/*
+ * Read data from raw socket, handle according to msg type
+ */
 void onRawSockAvailable() {
     struct sockaddr_ll srcAddr;
     int len = sizeof(srcAddr);
@@ -119,6 +124,10 @@ void onRawSockAvailable() {
     }
 }
 
+/*
+ * Read data from Unix domain socket, send RREQ if route not exists or
+ * stale or forced discovery, send payload message otherwise.
+ */
 void onDomSockAvailable() {
     char pcReadBuf[MAXLINE + 1];
     char destIP[IP_LEN], srcIP[IP_LEN];
@@ -168,6 +177,9 @@ void onDomSockAvailable() {
     }
 }
 
+/* 
+ * Relay message to application or flood RREQ or issue RREP on receiving RREQ
+ */
 void onRecvRREQ(RREQ_t* pRREQ, const struct sockaddr_ll *srcAddr) {
     const int iInIndex = srcAddr->sll_ifindex;
     const unsigned char* pucSrcMac = srcAddr->sll_addr;
@@ -263,6 +275,9 @@ void onRecvRREQ(RREQ_t* pRREQ, const struct sockaddr_ll *srcAddr) {
     }
 }
 
+/*
+ * Update routing table and path table, relay RREP to source or application
+ */
 void onRecvRREP(RREP_t* pRREP, const struct sockaddr_ll *incomingAddr) {
     const int iInIndex = incomingAddr->sll_ifindex;
     const unsigned char* pucSrcMac = incomingAddr->sll_addr;
@@ -309,6 +324,9 @@ void onRecvRREP(RREP_t* pRREP, const struct sockaddr_ll *incomingAddr) {
     }
 }
 
+/*
+ * Handle received payload message
+ */
 void onRecvAppMsg(AppMsg_t *appMsgRecv, const struct sockaddr_ll* srcAddr) {
     const int iInIndex = srcAddr->sll_ifindex;
     const unsigned char* pucSrcMac = srcAddr->sll_addr;
@@ -361,6 +379,9 @@ void onRecvAppMsg(AppMsg_t *appMsgRecv, const struct sockaddr_ll* srcAddr) {
     sendAppMsg(appMsgRecv);
 }
 
+/* 
+ * flood RREQ to all interfaces except for eth0, lo0 and incoming interface
+ */
 void floodRREQ(const int iSockfd, const int incomeIfIdx, RREQ_t *pRREQ, const int isSrc) {
     unsigned char destMac[MAC_LEN] = ODR_BROADCAST_MAC;
     for (int i = 0; i < iIfNum; ++i) {
@@ -383,6 +404,9 @@ void floodRREQ(const int iSockfd, const int incomeIfIdx, RREQ_t *pRREQ, const in
     }
 }
 
+/*
+ * send payload message to next node
+ */
 void sendAppMsg(const AppMsg_t *appMsg) {
     void *buffer = malloc(APPMSG_SIZE);
     marshalAppMsg(buffer, appMsg);
@@ -402,6 +426,9 @@ void sendAppMsg(const AppMsg_t *appMsg) {
 #endif
 }
 
+/*
+ * send data via raw socket iSockfd
+ */
 int sendRawFrame(const int iSockfd, const unsigned char* destAddr, 
         const unsigned char* srcAddr, const int ifIndex, const void* data) {
     struct sockaddr_ll sockAddr;
@@ -461,14 +488,8 @@ int sendRawFrame(const int iSockfd, const unsigned char* destAddr,
 }
 
 /*
-void setMacAddr(unsigned char* target, unsigned char* src) {
-    target[0] = hexStr2UChar(strtok(src, ":"));
-    for (int i = 1; i < 5; ++i) {
-        target[i] = hexStr2UChar(strtok(NULL, ":"));
-    }
-    target[5] = hexStr2UChar(&src[15]);
-}
-*/
+ * Get local interface array index by interface index
+ */
 int getArrIdxByIfIdx(const int ifIndex) {
     for (int i = 0; i < iIfNum; ++i) {
         if (arrIfInfo[i].index == ifIndex) {
@@ -478,6 +499,9 @@ int getArrIdxByIfIdx(const int ifIndex) {
     return -1;
 }
 
+/*
+ * get new broad id
+ */
 unsigned int bid() {
     return ulBroadID++;
 }

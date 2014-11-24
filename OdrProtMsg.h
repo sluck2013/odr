@@ -1,3 +1,8 @@
+/*
+ * This file defines 3 types of ODR protocol messages.
+ * If structure changes, RREQ_SIZE, RREP_SIZE and APPMSG_SIZE defined in
+ * constants.h should be changed accordingly.
+ */
 #ifndef ODRPROTMSG_H
 #define ODRPROTMSG_H
 
@@ -17,7 +22,6 @@ typedef struct AppMsg {
 } AppMsg_t;
 
 //type 0
-//if RREQ changes, RREQ_SIZE should be changed accordingly
 typedef struct RREQ {
     unsigned char type;
 	char srcIP[IP_LEN];

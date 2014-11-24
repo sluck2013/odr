@@ -1,3 +1,6 @@
+/*
+ * This file defines operations of path table
+ */
 #include "PathTable.h"
 #include "constants.h"
 #include "stdlib.h"
@@ -18,7 +21,8 @@ PTab_t *createPathTable() {
     return p;
 }
 
-PTabEnt_t *addToPathTable(PTab_t* pathTable, const int port, const char* path, const unsigned int lifetime) {
+PTabEnt_t *addToPathTable(PTab_t* pathTable, const int port, 
+        const char* path, const unsigned int lifetime) {
     PTabEnt_t *p = malloc(sizeof(*p));
     p->createTime = time(NULL);
     p->lifetime = lifetime;

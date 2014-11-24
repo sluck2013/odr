@@ -1,3 +1,6 @@
+/*
+ * This file defines operations of routing table
+ */
 #include "RouteTable.h"
 #include "string.h"
 #include "stdlib.h"

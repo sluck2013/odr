@@ -5,11 +5,8 @@
 #include "unp.h"
 
 /*
-inline void* memcpyItem(void* dest, void*src, size_t num) {
-    memcpy(dest, src, num);
-    return dest + num
-}*/
-
+ * init RREQ
+ */
 void makeRREQ(RREQ_t *RREQ, const char* destIP, const unsigned int broadID, const unsigned char forceDiscovery) {
     char localIP[IP_LEN];
     getLocalVmIP(localIP);
@@ -24,6 +21,9 @@ void makeRREQ(RREQ_t *RREQ, const char* destIP, const unsigned int broadID, cons
     RREQ->forceDisc = forceDiscovery;
 }
 
+/*
+ * Pack RREQ into buffer for network transmitting.
+ */
 void marshalRREQ(void* dest, const RREQ_t* RREQ) {
     memcpy(dest, (void*)&RREQ->type, sizeof(RREQ->type));
     memcpy(dest + 1, (void*)RREQ->srcIP, IP_LEN);
@@ -36,6 +36,9 @@ void marshalRREQ(void* dest, const RREQ_t* RREQ) {
     memcpy(dest + 7 + 2 * IP_LEN, (void*)&hopCnt, sizeof(RREQ->hopCnt));
 }
 
+/*
+ * Parse RREQ from buffer received from raw socket
+ */
 void unmarshalRREQ(RREQ_t* RREQ, const void* src) {
     unsigned int broadID;
     unsigned short int hopCnt;
